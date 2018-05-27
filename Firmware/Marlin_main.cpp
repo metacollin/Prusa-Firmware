@@ -963,7 +963,11 @@ void erase_eeprom_section(uint16_t offset, uint16_t bytes)
 // are initialized by the main() routine provided by the Arduino framework.
 void setup()
 {
-    lcd_init();
+  // Make sure OC0B is disconnected from HEATER_BED_PIN
+  TCCR0A &= ~(3<<COM0B0);
+
+
+  lcd_init();
 	fdev_setup_stream(lcdout, lcd_putchar, NULL, _FDEV_SETUP_WRITE); //setup lcdout stream
 	lcd_splash();
 	setup_killpin();
@@ -1080,9 +1084,9 @@ void setup()
 
 #ifdef TMC2130_LINEARITY_CORRECTION
 #ifdef EXPERIMENTAL_FEATURES
-	tmc2130_wave_fac[X_AXIS] = eeprom_read_word((uint8_t*)EEPROM_TMC2130_WAVE_X_FAC);
-	tmc2130_wave_fac[Y_AXIS] = eeprom_read_word((uint8_t*)EEPROM_TMC2130_WAVE_Y_FAC);
-	tmc2130_wave_fac[Z_AXIS] = eeprom_read_word((uint8_t*)EEPROM_TMC2130_WAVE_Z_FAC);
+	tmc2130_wave_fac[X_AXIS] = eeprom_read_word((uint16_t*)EEPROM_TMC2130_WAVE_X_FAC);
+	tmc2130_wave_fac[Y_AXIS] = eeprom_read_word((uint16_t*)EEPROM_TMC2130_WAVE_Y_FAC);
+	tmc2130_wave_fac[Z_AXIS] = eeprom_read_word((uint16_t*)EEPROM_TMC2130_WAVE_Z_FAC);
 #endif //EXPERIMENTAL_FEATURES
 	tmc2130_wave_fac[E_AXIS] = eeprom_read_word((uint16_t*)EEPROM_TMC2130_WAVE_E_FAC);
 	if (tmc2130_wave_fac[X_AXIS] == 0xff) tmc2130_wave_fac[X_AXIS] = 0;
@@ -8189,12 +8193,14 @@ ISR(INT7_vect) {
 
 #ifdef UVLO_SUPPORT
 void setup_uvlo_interrupt() {
-	DDRE &= ~(1 << 4); //input pin
+	
+  EIMSK &= ~(1 << 4);
+  DDRE &= ~(1 << 4); //input pin
 	PORTE &= ~(1 << 4); //no internal pull-up
 
 						//sensing falling edge
-	EICRB |= (1 << 0);
-	EICRB &= ~(1 << 1);
+	EICRB |= (1 << 1);
+	EICRB &= ~(1 << 0);
 
 	//enable INT4 interrupt
 	EIMSK |= (1 << 4);
