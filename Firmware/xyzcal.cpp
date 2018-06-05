@@ -687,7 +687,7 @@ uint8_t xyzcal_xycoords2point(int16_t x, int16_t y)
 //MK3
 #if ((MOTHERBOARD == BOARD_EINSY_1_0a))
 const int16_t PROGMEM xyzcal_point_xcoords[4] = {1200, 22000, 22000, 1200};
-const int16_t PROGMEM xyzcal_point_ycoords[4] = {600, 600, 19800, 19800};
+const int16_t PROGMEM xyzcal_point_ycoords[4] = {400, 400, 19600, 19600};
 #endif //((MOTHERBOARD == BOARD_EINSY_1_0a))
 
 //MK2.5
@@ -700,7 +700,7 @@ const uint16_t PROGMEM xyzcal_point_pattern[12] = {0x000, 0x0f0, 0x1f8, 0x3fc, 0
 
 bool xyzcal_searchZ(void)
 {
-	DBG(_n("xyzcal_searchZ x=%ld y=%ld z=%ld\n"), count_position[X_AXIS], count_position[Y_AXIS], count_position[Z_AXIS]);
+	DBG(_n("xyzcal_searchZ x=%ld y=%ld z=%ld\n"), _X, _Y, _Z);
 	int16_t x0 = _X;
 	int16_t y0 = _Y;
 	int16_t z0 = _Z;
@@ -710,7 +710,7 @@ bool xyzcal_searchZ(void)
 	while (z > -2300) //-6mm + 0.25mm
 	{
 		uint16_t ad = 0;
-		if (xyzcal_spiral8(x0, y0, z, 100, 900, 320, 1, &ad)) //dz=100 radius=900 delay=400
+		if (xyzcal_spiral8(x0, y0, z, 100, 500, 320, 1, &ad)) //dz=100 radius=900 delay=400
 		{
 			int16_t x_on = _X;
 			int16_t y_on = _Y;
@@ -720,7 +720,7 @@ bool xyzcal_searchZ(void)
 		}
 		z -= 400;
 	}
-	DBG(_n("xyzcal_searchZ no signal\n x=%ld y=%ld z=%ld\n"), count_position[X_AXIS], count_position[Y_AXIS], count_position[Z_AXIS]);
+	DBG(_n("xyzcal_searchZ no signal\n x=%ld y=%ld z=%ld\n"), _X, _Y, _Z);
 	return false;
 }
 
@@ -770,7 +770,7 @@ bool xyzcal_scan_and_process(void)
 
 bool xyzcal_find_bed_induction_sensor_point_xy(void)
 {
-	DBG(_n("xyzcal_find_bed_induction_sensor_point_xy x=%ld y=%ld z=%ld\n"), count_position[X_AXIS], count_position[Y_AXIS], count_position[Z_AXIS]);
+	//DBG(_n("xyzcal_find_bed_induction_sensor_point_xy x=%ld y=%ld z=%ld\n"), _X, _Y, _Z);
 	bool ret = false;
 	st_synchronize();
 	int16_t x = _X;

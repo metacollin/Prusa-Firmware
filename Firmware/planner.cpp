@@ -335,7 +335,7 @@ void planner_recalculate(const float &safe_final_speed)
 
     // At least three blocks are in the queue?
     unsigned char n_blocks = (block_buffer_head + BLOCK_BUFFER_SIZE - tail) & (BLOCK_BUFFER_SIZE - 1);
-    if (n_blocks >= 3) {
+    if (n_blocks > 2) {
         // Initialize the last tripple of blocks.
         block_index = prev_block_index(block_buffer_head);
         next        = block_buffer + block_index;
@@ -381,7 +381,7 @@ void planner_recalculate(const float &safe_final_speed)
 //    SERIAL_ECHOLNPGM("planner_recalculate - 2");
 
     // Forward pass and recalculate the trapezoids.
-    if (n_blocks >= 2) {
+    if (n_blocks > 1) {
         // Better to limit the velocities using the already processed block, if it is available, so rather use the saved tail.
         block_index = tail;
         prev    = block_buffer + block_index;

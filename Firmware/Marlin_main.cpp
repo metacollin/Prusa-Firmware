@@ -964,7 +964,7 @@ void erase_eeprom_section(uint16_t offset, uint16_t bytes)
 void setup()
 {
   // Make sure OC0B is disconnected from HEATER_BED_PIN
-  TCCR0A &= ~(3<<COM0B0);
+  TCCR0A &= ~(0b00110000);
 
 
   lcd_init();
