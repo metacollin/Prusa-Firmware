@@ -678,6 +678,59 @@ void lcd_implementation_print_at(uint8_t x, uint8_t y, const char *str)
     lcd.print(str);
 }
 
+static inline void lcd_print_percent_done() {
+	if (is_usb_printing)
+	{
+		lcd_printPGM(PSTR("USB"));
+	}
+	else if(IS_SD_PRINTING)
+	{
+		lcd_printPGM(PSTR("SD"));
+	}
+	else
+	{
+		lcd_printPGM(PSTR("  "));
+	}
+	if (IS_SD_PRINTING || (PRINTER_ACTIVE && (print_percent_done_normal != PRINT_PERCENT_DONE_INIT)))
+	{
+		lcd.print(itostr3(print_percent_done()));
+	}
+	else
+	{
+		lcd_printPGM(PSTR("---"));
+	}
+	lcd_printPGM(PSTR("% "));
+}
+
+static inline void lcd_print_time() {
+	//if remaining print time estimation is available print it else print elapsed time
+	//uses 8 characters
+	uint16_t print_t = 0;
+	if (print_time_remaining_normal != PRINT_TIME_REMAINING_INIT){
+		print_t = print_time_remaining();
+	}
+	else if(starttime != 0){
+		print_t = millis() / 60000 - starttime / 60000;	
+	}
+	lcd.print(LCD_STR_CLOCK[0]);
+	if((PRINTER_ACTIVE) && ((print_time_remaining_normal != PRINT_TIME_REMAINING_INIT)||(starttime != 0)))
+	{
+		lcd.print(itostr2(print_t/60));
+        lcd.print(':');
+        lcd.print(itostr2(print_t%60));	
+		if (print_time_remaining_normal != PRINT_TIME_REMAINING_INIT)
+		{
+			lcd.print('R');
+			(feedmultiply == 100) ? lcd.print(' ') : lcd.print('?');
+		}
+		else {
+			lcd_printPGM(PSTR("  "));
+		}
+    }else{
+        lcd_printPGM(PSTR("--:--  "));
+    }
+}
+
 /*
 
 20x4   |01234567890123456789|
@@ -774,36 +827,14 @@ if (print_sd_status)
 {
     //Print SD status
     lcd.setCursor(0, 2);
-	if (is_usb_printing)
-	{
-		lcd_printPGM(PSTR("--"));
-	}
-	else
-	{
-		lcd_printPGM(PSTR("SD"));
-	}
-	if (IS_SD_PRINTING)
-	{
-		lcd.print(itostr3(card.percentDone()));
-		lcd.print('%');
-	}
-	else
-	{
-		if (is_usb_printing)
-		{
-			lcd_printPGM(PSTR(">USB"));
-		}
-		else
-		{
-			lcd_printPGM(PSTR("---"));
-			lcd.print('%');
-		}
-	}
+	lcd_print_percent_done();
+
 }
 
 	// Farm number display
 	if (farm_mode)
 	{
+		lcd.setCursor(6, 2);
 		lcd_printPGM(PSTR(" F"));
 		lcd.print(farm_no);
 		lcd_printPGM(PSTR("  "));
@@ -830,22 +861,16 @@ if (print_sd_status)
 #endif
 	}
 
-
-
-    //Print time elapsed
-    lcd.setCursor(LCD_WIDTH - 8 -1, 2);
-    lcd_printPGM(PSTR(" "));
-    lcd.print(LCD_STR_CLOCK[0]);
-    if(starttime != 0)
-    {
-		uint16_t time = millis() / 60000 - starttime / 60000;
-        lcd.print(itostr2(time/60));
-        lcd.print(':');
-        lcd.print(itostr2(time%60));
-    }else{
-        lcd_printPGM(PSTR("--:--"));
-    }
-    lcd_printPGM(PSTR("  "));
+#ifdef CMD_DIAGNOSTICS
+	lcd.setCursor(LCD_WIDTH - 8 -1, 2);
+	lcd_printPGM(PSTR("      C"));
+	lcd.print(buflen);	// number of commands in cmd buffer
+	if (buflen < 9) lcd_printPGM(" ");
+#else
+    //Print time
+	lcd.setCursor(LCD_WIDTH - 8, 2);
+	lcd_print_time();
+#endif //CMD_DIAGNOSTICS
 
 #ifdef DEBUG_DISABLE_LCD_STATUS_LINE
 	return;
@@ -968,7 +993,7 @@ if (print_sd_status)
 					lcd.setCursor(0, 3);
 					lcd_printPGM(PSTR("                    "));
 					lcd.setCursor(0, 3);
-					lcd_printPGM(_i("Calibrating Z"));////MSG_HOMEYZ_PROGRESS c=0 r=0
+					lcd_printPGM(_T(MSG_CALIBRATE_Z_AUTO));
 					lcd_printPGM(PSTR(" : "));
 					lcd.print(custom_message_state-10);
 				}

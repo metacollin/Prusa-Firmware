@@ -1,4 +1,4 @@
-# 1. Developement environment preparing
+# 1. Development environment preparation
 
    1. install `"Arduino Software IDE"` for your preferred operating system  
 `https://www.arduino.cc -> Software->Downloads`  
@@ -26,6 +26,8 @@ _note: select this item for any variant of board used in printers `'Prusa i3 MKx
 'clicking' the item will display the installation button; select choice `"1.0.1"` from the list(last known version as of the date of issue of this document)  
 _(after installation, the item is labeled as `"INSTALLED"` and can then be used for target board selection)_  
 
+   3. modify platform.txt to enable float printf support:
+   `"compiler.c.elf.flags=-w -Os -Wl,-u,vfprintf -lprintf_flt -lm -Wl,--gc-sections"`
 
 # 2. Source code compilation
 
@@ -51,3 +53,41 @@ or you can also save the output code to the file (in so called `HEX`-format) `"F
 `Sketch->ExportCompiledBinary`  
 and then upload it to the printer using the program `"FirmwareUpdater"`  
 _note: this file is created in the directory `"Firmware/"`_  
+
+# 3. Automated tests
+## Prerequisites
+c++11 compiler e.g. g++ 6.3.1
+
+cmake
+
+build system - ninja or gnu make
+
+## Building
+Create folder where you want to build tests.
+
+Example:
+
+`cd ..`
+
+`mkdir Prusa-Firmware-test`
+
+Generate build scripts in target folder.
+
+Example:
+
+`cd Prusa-Firmware-test`
+
+`cmake -G "Eclipse CDT4 - Ninja" ../Prusa-Firmware`
+
+or for DEBUG build:
+
+`cmake -G "Eclipse CDT4 - Ninja" -DCMAKE_BUILD_TYPE=Debug ../Prusa-Firmware`
+
+Build it.
+
+Example:
+
+`ninja`
+
+## Runing
+`./tests`

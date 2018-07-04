@@ -39,17 +39,17 @@
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
 // Endstop inverting
-#define X_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
-#define Y_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
-#define Z_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
+#define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
+#define Y_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
+#define Z_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
 
 // Direction inverting
-#define INVERT_X_DIR true    // for Mendel set to false, for Orca set to true
-#define INVERT_Y_DIR false    // for Mendel set to true, for Orca set to false
-#define INVERT_Z_DIR true     // for Mendel set to false, for Orca set to true
-#define INVERT_E0_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
-#define INVERT_E1_DIR false    // for direct drive extruder v9 set to true, for geared extruder set to false
-#define INVERT_E2_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_X_DIR 1    // for Mendel set to 0, for Orca set to 1
+#define INVERT_Y_DIR 0    // for Mendel set to 1, for Orca set to 0
+#define INVERT_Z_DIR 1     // for Mendel set to 0, for Orca set to 1
+#define INVERT_E0_DIR 0   // for direct drive extruder v9 set to 1, for geared extruder set to 0
+#define INVERT_E1_DIR 0    // for direct drive extruder v9 set to 1, for geared extruder set to 0
+#define INVERT_E2_DIR 0   // for direct drive extruder v9 set to 1, for geared extruder set to 0
 
 // Home position
 #define MANUAL_X_HOME_POS 0
@@ -112,14 +112,12 @@
 
 #define Z_AXIS_ALWAYS_ON 1
 
-// Automatic recovery after crash is detected
-#define AUTOMATIC_RECOVERY_AFTER_CRASH
+//Crash detection
+#define CRASHDET_TIMER 45 //seconds
+#define CRASHDET_COUNTER_MAX 3 
 
 // New XYZ calibration
 #define NEW_XYZCAL
-
-// Do not use Arduino SPI 
-#define NEW_SPI
 
 // Watchdog support
 #define WATCHDOG
@@ -132,6 +130,7 @@
 
 // Safety timer
 #define SAFETYTIMER
+#define DEFAULT_SAFETYTIMER_TIME_MINS 30
 
 // Filament sensor
 #define PAT9125
@@ -148,6 +147,9 @@
 #define MINTEMP_MINAMBIENT_RAW  978
 
 //#define DEBUG_BUILD
+//#define DEBUG_SEC_LANG   //secondary language debug output at startup
+//#define DEBUG_W25X20CL   //debug external spi flash
+//#define DEBUG_MENU_PRINTF_TEST
 #ifdef DEBUG_BUILD
 //#define _NO_ASM
 #define DEBUG_DCODES //D codes
@@ -177,6 +179,7 @@
 #define DEBUG_DUMP_TO_2ND_SERIAL   //dump received characters to 2nd serial line
 #define DEBUG_STEPPER_TIMER_MISSED // Stop on stepper timer overflow, beep and display a message.
 #define PLANNER_DIAGNOSTICS // Show the planner queue status on printer display.
+#define CMD_DIAGNOSTICS //Show cmd queue length on printer display
 #endif /* DEBUG_BUILD */
 
 //#define EXPERIMENTAL_FEATURES
@@ -488,6 +491,8 @@
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
 
+//connect message when communication with monitoring broken
+//#define FARM_CONNECT_MESSAGE
 
 
 /*-----------------------------------
@@ -607,7 +612,7 @@
 #define PINDA_MAX_T 100
 
 #define PING_TIME 60 //time in s
-#define PING_TIME_LONG 600 //10 min; used when length of commands buffer > 0 to avoid false triggering when dealing with long gcodes
+#define PING_TIME_LONG 600 //10 min; used when length of commands buffer > 0 to avoid 0 triggering when dealing with long gcodes
 #define PING_ALLERT_PERIOD 60 //time in s
 
 #define NC_TIME 10 //time in s for periodic important status messages sending which needs reponse from monitoring

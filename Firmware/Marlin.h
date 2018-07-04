@@ -47,7 +47,7 @@
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-#include "WString.h"
+//#include "WString.h"
 
 
   #define MYSERIAL MSerial
@@ -340,6 +340,15 @@ extern char dir_names[3][9];
 // save/restore printing
 extern bool saved_printing;
 
+//estimated time to end of the print
+extern uint8_t print_percent_done_normal;
+extern uint16_t print_time_remaining_normal;
+extern uint8_t print_percent_done_silent;
+extern uint16_t print_time_remaining_silent;
+#define PRINT_TIME_REMAINING_INIT 65535
+#define PRINT_PERCENT_DONE_INIT 255
+#define PRINTER_ACTIVE (IS_SD_PRINTING || is_usb_printing || isPrintPaused || (custom_message_type == 4) || saved_printing || (lcd_commands_type == LCD_COMMAND_V2_CAL) || card.paused)
+
 extern void calculate_extruder_multipliers();
 
 // Similar to the default Arduino delay function, 
@@ -391,6 +400,11 @@ extern void print_mesh_bed_leveling_table();
 #ifdef PAT9125
 extern void fsensor_init();
 #endif //PAT9125
+
+//estimated time to end of the print
+extern uint16_t print_time_remaining();
+extern uint8_t print_percent_done();
+static void print_time_remaining_init();
 
 #ifdef HOST_KEEPALIVE_FEATURE
 

@@ -8,7 +8,6 @@
 #include "Configuration_prusa.h"
 
 //internationalized messages
-const char MSG_ALL[] PROGMEM_I1 = ISTR("All"); ////c=19 r=1
 const char MSG_AUTO_HOME[] PROGMEM_I1 = ISTR("Auto home"); ////c=0 r=0
 const char MSG_AUTO_MODE_ON[] PROGMEM_I1 = ISTR("Mode [auto power]"); ////c=0 r=0
 const char MSG_BABYSTEP_Z[] PROGMEM_I1 = ISTR("Live adjust Z"); ////c=0 r=0
@@ -71,6 +70,7 @@ const char MSG_PRINT_ABORTED[] PROGMEM_I1 = ISTR("Print aborted"); ////c=20 r=0
 const char MSG_PULL_OUT_FILAMENT[] PROGMEM_I1 = ISTR("Please pull out filament immediately"); ////c=20 r=4
 const char MSG_RECOVER_PRINT[] PROGMEM_I1 = ISTR("Blackout occurred. Recover print?"); ////c=20 r=2
 const char MSG_REFRESH[] PROGMEM_I1 = ISTR("\xF8" "Refresh"); ////c=0 r=0
+const char MSG_RESUMING_PRINT[] PROGMEM_I1 = ISTR("Resuming print"); ////c=0 r=0
 const char MSG_REMOVE_STEEL_SHEET[] PROGMEM_I1 = ISTR("Please remove steel sheet from heatbed."); ////c=20 r=4
 const char MSG_SD_ERR_WRITE_TO_FILE[] PROGMEM_I1 = ISTR("error writing to file"); ////c=0 r=0
 const char MSG_SD_OPEN_FILE_FAIL[] PROGMEM_I1 = ISTR("open failed, File: "); ////c=0 r=0
@@ -118,3 +118,4 @@ const char MSG_Z_MAX[] PROGMEM_N1 = "z_max: "; ////c=0 r=0
 const char MSG_Z_MIN[] PROGMEM_N1 = "z_min: "; ////c=0 r=0
 const char MSG_ZPROBE_OUT[] PROGMEM_N1 = "Z probe out. bed"; ////c=0 r=0
 const char MSG_ZPROBE_ZOFFSET[] PROGMEM_N1 = "Z Offset"; ////c=0 r=0
+const char MSG_TMC_OVERTEMP[] PROGMEM_N1 = "TMC DRIVER OVERTEMP"; ////c=0 r=0
