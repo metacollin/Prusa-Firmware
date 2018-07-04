@@ -1,0 +1,322 @@
+---
+MainSourceFile:  /Users/collinanderson/waaaa/Firmware/planner.cpp
+Diagnostics:     
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         too many errors emitted, stopping now
+    FileOffset:      0
+    FilePath:        ''
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'unknown argument: ''-checks=-clang-diagnostic-int-to-void-pointer-cast'''
+    FileOffset:      0
+    FilePath:        ''
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'cast from pointer to smaller type ''uint16_t'' (aka ''unsigned short'') loses information'
+    FileOffset:      2691
+    FilePath:        /Users/collinanderson/waaaa/Firmware/Marlin.h
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'invalid input constraint ''z'' in asm'
+    FileOffset:      2691
+    FilePath:        /Users/collinanderson/waaaa/Firmware/Marlin.h
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'cast from pointer to smaller type ''uint16_t'' (aka ''unsigned short'') loses information'
+    FileOffset:      2758
+    FilePath:        /Users/collinanderson/waaaa/Firmware/Marlin.h
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'invalid input constraint ''z'' in asm'
+    FileOffset:      2758
+    FilePath:        /Users/collinanderson/waaaa/Firmware/Marlin.h
+    Replacements:    
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''ceil'' promotes float to double'
+    FileOffset:      7588
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          1918
+        Length:          0
+        ReplacementText: '
+#include <cmath>
+'
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          7588
+        Length:          4
+        ReplacementText: 'std::ceil'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''ceil'' promotes float to double'
+    FileOffset:      7669
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          7669
+        Length:          4
+        ReplacementText: 'std::ceil'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''sqrt'' promotes float to double'
+    FileOffset:      12382
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          12382
+        Length:          4
+        ReplacementText: 'std::sqrt'
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      30731
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          30731
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      30736
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      30794
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          30794
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      30799
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      30909
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          30909
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      30914
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      31007
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          31007
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      31012
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      31182
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          31182
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      31187
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''sqrt'' promotes float to double'
+    FileOffset:      31277
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          31277
+        Length:          4
+        ReplacementText: 'std::sqrt'
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'cast from pointer to smaller type ''uint16_t'' (aka ''unsigned short'') loses information'
+    FileOffset:      31774
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-int-to-void-pointer-cast
+    Message:         'cast to ''void *'' from smaller integer type ''uint16_t'' (aka ''unsigned short'')'
+    FileOffset:      31774
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'invalid output constraint ''=z'' in asm'
+    FileOffset:      31774
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'cast from pointer to smaller type ''uint16_t'' (aka ''unsigned short'') loses information'
+    FileOffset:      32179
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-int-to-void-pointer-cast
+    Message:         'cast to ''void *'' from smaller integer type ''uint16_t'' (aka ''unsigned short'')'
+    FileOffset:      32179
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'invalid output constraint ''=z'' in asm'
+    FileOffset:      32179
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''fabs'' promotes float to double'
+    FileOffset:      37577
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          37577
+        Length:          4
+        ReplacementText: 'std::fabs'
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      38610
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          38610
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      38861
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          38861
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  bugprone-integer-division
+    Message:         'result of integer division used in a floating point context; possible loss of precision'
+    FileOffset:      38873
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''ceil'' promotes float to double'
+    FileOffset:      39054
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          39054
+        Length:          4
+        ReplacementText: 'std::ceil'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''fabs'' promotes float to double'
+    FileOffset:      39646
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          39646
+        Length:          4
+        ReplacementText: 'std::fabs'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''fabs'' promotes float to double'
+    FileOffset:      39727
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          39727
+        Length:          4
+        ReplacementText: 'std::fabs'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''ceil'' promotes float to double'
+    FileOffset:      40590
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          40590
+        Length:          4
+        ReplacementText: 'std::ceil'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''ceil'' promotes float to double'
+    FileOffset:      40717
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          40717
+        Length:          4
+        ReplacementText: 'std::ceil'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''fabs'' promotes float to double'
+    FileOffset:      45292
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          45292
+        Length:          4
+        ReplacementText: 'std::fabs'
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      52463
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          52463
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      55537
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          55537
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      55542
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'no member named ''lround'' in namespace ''std''; did you mean simply ''lround''?'
+    FileOffset:      55602
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          55602
+        Length:          11
+        ReplacementText: lround
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      55607
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      55715
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          55715
+        Length:          6
+        ReplacementText: 'std::lround'
+  - DiagnosticName:  performance-type-promotion-in-math-fn
+    Message:         'call to ''lround'' promotes float to double'
+    FileOffset:      55782
+    FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+    Replacements:    
+      - FilePath:        /Users/collinanderson/waaaa/Firmware/planner.cpp
+        Offset:          55782
+        Length:          6
+        ReplacementText: 'std::lround'
+  - DiagnosticName:  clang-diagnostic-error
+    Message:         'invalid output constraint ''=w'' in asm'
+    FileOffset:      4026
+    FilePath:        /usr/local/Cellar/avr-gcc/7.3.0/avr/include/util/delay_basic.h
+    Replacements:    
+...

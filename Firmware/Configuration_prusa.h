@@ -19,7 +19,7 @@
 // Electronics
 #define MOTHERBOARD BOARD_EINSY_1_0a
 #define STEEL_SHEET
-#define HAS_SECOND_SERIAL_PORT
+//#define HAS_SECOND_SERIAL_PORT
 
 
 // Uncomment the below for the E3D PT100 temperature sensor (with or without PT100 Amplifier)
@@ -35,33 +35,32 @@
 
 // Steps per unit {X,Y,Z,E}
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,140}
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,614}
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
-// Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
 #define Y_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
 #define Z_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
 
 // Direction inverting
+//MK2 with Einsy needs all axes inverted
 #define INVERT_X_DIR true    // for Mendel set to false, for Orca set to true
-#define INVERT_Y_DIR false    // for Mendel set to true, for Orca set to false
+#define INVERT_Y_DIR true    // for Mendel set to true, for Orca set to false
 #define INVERT_Z_DIR true     // for Mendel set to false, for Orca set to true
 #define INVERT_E0_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E1_DIR false    // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E2_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
-
 // Home position
 #define MANUAL_X_HOME_POS 0
 #define MANUAL_Y_HOME_POS -2.2
 #define MANUAL_Z_HOME_POS 0.2
 
 // Travel limits after homing
-#define X_MAX_POS 255
+#define X_MAX_POS 250
 #define X_MIN_POS 0
-#define Y_MAX_POS 212.5
-#define Y_MIN_POS -4 //orig -4
-#define Z_MAX_POS 210
+#define Y_MAX_POS 210
+#define Y_MIN_POS -8
+#define Z_MAX_POS 207
 #define Z_MIN_POS 0.15
 
 // Canceled home position
@@ -74,17 +73,17 @@
 #define Z_PAUSE_LIFT 20
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
+#define HOMING_FEEDRATE {4800, 4800, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
 
-//#define DEFAULT_Y_OFFSET    4.f // Default distance of Y_MIN_POS point from endstop, when the printer is not calibrated.
+//#define DEFAULT_Y_OFFSET    2.f // Default distance of Y_MIN_POS point from endstop, when the printer is not calibrated.
 /**
- * [0,0] steel sheet print area point X coordinate in bed print area coordinates
+ * [0,0] steel sheet print area point X cowwwordinate in bed print area coordinates
  */
 #define SHEET_PRINT_ZERO_REF_X 0.f
 /**
  * [0,0] steel sheet print area point Y coordinate in bed print area coordinates
  */
-#define SHEET_PRINT_ZERO_REF_Y -2.f
+#define SHEET_PRINT_ZERO_REF_Y -0.f
 
 #define DEFAULT_MAX_FEEDRATE          {200, 200, 12, 120}      // (mm/sec)   max feedrate (M203)
 #define DEFAULT_MAX_ACCELERATION      {1000, 1000, 200, 5000}  // (mm/sec^2) max acceleration (M201)
@@ -122,7 +121,7 @@
 #define NEW_SPI
 
 // Watchdog support
-#define WATCHDOG
+//#define WATCHDOG
 
 // Power panic
 #define UVLO_SUPPORT
@@ -131,7 +130,7 @@
 #define FANCHECK
 
 // Safety timer
-#define SAFETYTIMER
+//#define SAFETYTIMER
 
 // Filament sensor
 #define PAT9125
@@ -217,6 +216,9 @@
 #define TMC2130_PWM_AUTO_E  1         // PWMCONF
 #define TMC2130_PWM_FREQ_E  2         // PWMCONF
 
+#define TMC2130_TOFF_XYZ    2         // CHOPCONF // fchop = 27.778kHz
+#define TMC2130_TOFF_E      3         // CHOPCONF // fchop = 27.778kHz
+
 //#define TMC2130_STEALTH_E // Extruder stealthChop mode
 //#define TMC2130_CNSTOFF_E // Extruder constant-off-time mode (similar to MK2)
 
@@ -236,9 +238,9 @@
 
 //Used only when homing
 #define TMC2130_SG_HOMING       	 1      // stallguard homing
-#define TMC2130_HOMING_SG_THRS_X _sg(3)     // stallguard sensitivity for X axis when homing
+#define TMC2130_HOMING_SG_THRS_X _sg(4)     // stallguard sensitivity for X axis when homing
 #define TMC2130_HOMING_SG_THRS_Y _sg(3)     // stallguard sensitivity for Y axis when homing
-#define TMC2130_HOMING_SG_THRS_Z _sg(4)     // stallguard sensitivity for Z axis when homing
+#define TMC2130_HOMING_SG_THRS_Z _sg(3)     // stallguard sensitivity for Z axis when homing
 #define TMC2130_HOMING_SG_THRS_E _sg(3)     // stallguard sensitivity for E axis when homing
 
 
@@ -249,9 +251,9 @@
 #define TMC2130_SG_THRS_E        _sg(3)     // stallguard sensitivity for E axis
 
 //new settings is possible for vsense = 1, running current value > 31 set vsense to zero and shift both currents by 1 bit right (Z axis only)
-#define TMC2130_CURRENTS_R_HOME 	{12, 10, 30, 18}  // default homing currents for all axes
-#define TMC2130_CURRENTS_H 			{16, 20, 35, 30}  // default holding currents for all axes
-#define TMC2130_CURRENTS_R 			{16, 20, 35, 30}  // default running currents for all axes
+#define TMC2130_CURRENTS_R_HOME 	{12, 10, 15, 18}  // default homing currents for all axes
+#define TMC2130_CURRENTS_H 			{16, 20, 35, 25}  // default holding currents for all axes
+#define TMC2130_CURRENTS_R 			{16, 20, 35, 25}  // default running currents for all axes
 #define TMC2130_UNLOAD_CURRENT_R 	12			 	  // low current for M600 to protect filament sensor 
 
 #define TMC2130_STEALTH_Z
@@ -260,7 +262,7 @@
 #define TMC2130_BLANKING_TIME 2 // current measurement blanking time
 #define TMC2130_CHOP_MODE 0 // 0 = spreadCycle
 #define TMC2130_RANDOM_OFF_TIME 0 // 0 = off
-#define TMC2130_TOFF_XYZ 2 // toff = 3 (fchop = 27.778kHz)
+#define TMC2130_TOFF_XYZ 3 // toff = 3 (fchop = 27.778kHz)
 #define TMC2130_HSTART 5 //initial 4, modified to 5
 #define TMC2130_HEND 1 // 1
 #define TMC2130_FAST_DECAY3 0 // Not used in spreadCycle mode
@@ -324,7 +326,7 @@
 // Load filament commands
 #define LOAD_FILAMENT_0 "M83"
 #define LOAD_FILAMENT_1 "G1 E70 F400"
-#define LOAD_FILAMENT_2 "G1 E40 F100"
+#define LOAD_FILAMENT_2 "G1 E40 F200"
 
 // Unload filament commands
 #define UNLOAD_FILAMENT_0 "M83"
@@ -378,16 +380,16 @@
  MOTOR CURRENT SETTINGS
  *------------------------------------*/
 
-// Motor Current setting for BIG RAMBo
-#define DIGIPOT_MOTOR_CURRENT {135,135,135,135,135} // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)
-#define DIGIPOT_MOTOR_CURRENT_LOUD {135,135,135,135,135}
+// // Motor Current setting for BIG RAMBo
+// #define DIGIPOT_MOTOR_CURRENT {135,135,135,135,135} // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)
+// #define DIGIPOT_MOTOR_CURRENT_LOUD {135,135,135,135,135}
 
-// Motor Current settings for RAMBo mini PWM value = MotorCurrentSetting * 255 / range
-#if MOTHERBOARD == BOARD_RAMBO_MINI_1_0 || MOTHERBOARD == BOARD_RAMBO_MINI_1_3
-#define MOTOR_CURRENT_PWM_RANGE 2000
-#define DEFAULT_PWM_MOTOR_CURRENT  {400, 750, 750} // {XY,Z,E}
-#define DEFAULT_PWM_MOTOR_CURRENT_LOUD  {400, 750, 750} // {XY,Z,E}
-#endif
+// // Motor Current settings for RAMBo mini PWM value = MotorCurrentSetting * 255 / range
+// #if MOTHERBOARD == BOARD_RAMBO_MINI_1_0 || MOTHERBOARD == BOARD_RAMBO_MINI_1_3
+// #define MOTOR_CURRENT_PWM_RANGE 2000
+// #define DEFAULT_PWM_MOTOR_CURRENT  {400, 750, 750} // {XY,Z,E}
+// #define DEFAULT_PWM_MOTOR_CURRENT_LOUD  {400, 750, 750} // {XY,Z,E}
+// #endif
 
 /*------------------------------------
  PAT9125 SETTINGS
@@ -475,7 +477,6 @@
 
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
-
 
 
 /*-----------------------------------
@@ -575,8 +576,8 @@
 #define MAX_BED_TEMP_CALIBRATION 50
 #define MAX_HOTEND_TEMP_CALIBRATION 50
 
-#define MAX_E_STEPS_PER_UNIT 250
-#define MIN_E_STEPS_PER_UNIT 100
+//#define MAX_E_STEPS_PER_UNIT 250
+//#define MIN_E_STEPS_PER_UNIT 100
 
 #define Z_BABYSTEP_MIN -3999
 #define Z_BABYSTEP_MAX 0
