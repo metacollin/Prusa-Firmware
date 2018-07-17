@@ -19,7 +19,7 @@
 // Electronics
 #define MOTHERBOARD BOARD_EINSY_1_0a
 #define STEEL_SHEET
-//#define HAS_SECOND_SERIAL_PORT
+#define HAS_SECOND_SERIAL_PORT
 
 
 // Uncomment the below for the E3D PT100 temperature sensor (with or without PT100 Amplifier)
@@ -35,7 +35,7 @@
 
 // Steps per unit {X,Y,Z,E}
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,140}
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,614}
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,294}
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
 #define X_MIN_ENDSTOP_INVERTING 0 // set to true to invert the logic of the endstop.
@@ -57,9 +57,9 @@
 
 // Travel limits after homing
 #define X_MAX_POS 250
-#define X_MIN_POS 0
+#define X_MIN_POS -2
 #define Y_MAX_POS 210
-#define Y_MIN_POS -8
+#define Y_MIN_POS -10
 #define Z_MAX_POS 207
 #define Z_MIN_POS 0.15
 
@@ -73,7 +73,7 @@
 #define Z_PAUSE_LIFT 20
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {4800, 4800, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
+#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
 
 //#define DEFAULT_Y_OFFSET    2.f // Default distance of Y_MIN_POS point from endstop, when the printer is not calibrated.
 /**
@@ -105,7 +105,8 @@
 #define NORMAL_MAX_FEEDRATE 200  //max feedrate in mm/s, because mode switched to normal for homming , this value limits also homing, it should be greater (172mm/s=9600mm/min>2700mm/min)
 
 //#define SIMPLE_ACCEL_LIMIT          //new limitation method for normal/silent
-
+#define CRASHDET_TIMER 45 //seconds
+#define CRASHDET_COUNTER_MAX 3 
 //number of bytes from end of the file to start check
 #define END_FILE_SECTION 10000
 
@@ -121,17 +122,19 @@
 #define NEW_SPI
 
 // Watchdog support
-//#define WATCHDOG
+#define WATCHDOG
 
 // Power panic
 #define UVLO_SUPPORT
 
 // Fan check
-#define FANCHECK
+//#define FANCHECK
 
 // Safety timer
-//#define SAFETYTIMER
 
+#define SAFETYTIMER
+#define DEFAULT_SAFETYTIMER_TIME_MINS 150
+#define W25X20CL
 // Filament sensor
 #define PAT9125
 
@@ -238,7 +241,7 @@
 
 //Used only when homing
 #define TMC2130_SG_HOMING       	 1      // stallguard homing
-#define TMC2130_HOMING_SG_THRS_X _sg(4)     // stallguard sensitivity for X axis when homing
+#define TMC2130_HOMING_SG_THRS_X _sg(3)     // stallguard sensitivity for X axis when homing
 #define TMC2130_HOMING_SG_THRS_Y _sg(3)     // stallguard sensitivity for Y axis when homing
 #define TMC2130_HOMING_SG_THRS_Z _sg(3)     // stallguard sensitivity for Z axis when homing
 #define TMC2130_HOMING_SG_THRS_E _sg(3)     // stallguard sensitivity for E axis when homing
@@ -251,9 +254,9 @@
 #define TMC2130_SG_THRS_E        _sg(3)     // stallguard sensitivity for E axis
 
 //new settings is possible for vsense = 1, running current value > 31 set vsense to zero and shift both currents by 1 bit right (Z axis only)
-#define TMC2130_CURRENTS_R_HOME 	{12, 10, 15, 18}  // default homing currents for all axes
-#define TMC2130_CURRENTS_H 			{16, 20, 35, 25}  // default holding currents for all axes
-#define TMC2130_CURRENTS_R 			{16, 20, 35, 25}  // default running currents for all axes
+#define TMC2130_CURRENTS_R_HOME 	{14, 10, 15, 18}  // default homing currents for all axes
+#define TMC2130_CURRENTS_H 			{18, 20, 35, 28}  // default holding currents for all axes
+#define TMC2130_CURRENTS_R 			{18, 20, 35, 28}  // default running currents for all axes
 #define TMC2130_UNLOAD_CURRENT_R 	12			 	  // low current for M600 to protect filament sensor 
 
 #define TMC2130_STEALTH_Z
@@ -308,7 +311,7 @@
 #endif
 
 // Extrude mintemp
-#define EXTRUDE_MINTEMP 190
+#define EXTRUDE_MINTEMP 180
 
 // Extruder cooling fans
 #define EXTRUDER_0_AUTO_FAN_PIN   8

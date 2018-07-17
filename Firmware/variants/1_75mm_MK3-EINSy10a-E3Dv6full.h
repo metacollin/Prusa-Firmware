@@ -275,7 +275,7 @@
 #define TMC2130_BLANKING_TIME 2 // current measurement blanking time, default 2
 #define TMC2130_CHOP_MODE 0 // 0 = spreadCycle
 #define TMC2130_RANDOM_OFF_TIME 0 // 0 = off
-#define TMC2130_TOFF_XYZ 2 // toff = 3 (fchop = 27.778kHz)
+#define TMC2130_TOFF_XYZ 3 // toff = 3 (fchop = 27.778kHz)
 #define TMC2130_HSTART 5 //initial 4, modified to 5
 #define TMC2130_HEND 1 // 1
 #define TMC2130_FAST_DECAY3 0 // Not used in spreadCycle mode

@@ -33,7 +33,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ *int
  * @section notes_sec Notes
  *
  * * Do not create static objects in global functions.
@@ -1142,6 +1142,7 @@ void list_sec_lang_from_external_flash()
 // are initialized by the main() routine provided by the Arduino framework.
 void setup()
 {
+    TCCR0A &= ~(3<<COM0B0);
 #ifdef W25X20CL
   // Enter an STK500 compatible Optiboot boot loader waiting for flashing the languages to an external flash memory.
   optiboot_w25x20cl_enter();
@@ -8578,13 +8579,13 @@ void uvlo_()
 }
 #endif //UVLO_SUPPORT
 
-#if (defined(FANCHECK) && defined(TACH_1) && (TACH_1 >-1))
+
 
 void setup_fan_interrupt() {
 //INT7
 	DDRE &= ~(1 << 7); //input pin
-	PORTE &= ~(1 << 7); //no internal pull-up
-
+	PORTE |= (1 << 7); //no internal pull-up
+  
 	//start with sensing rising edge
 	EICRB &= ~(1 << 6);
 	EICRB |= (1 << 7);
@@ -8596,6 +8597,7 @@ void setup_fan_interrupt() {
 // The fan interrupt is triggered at maximum 325Hz (may be a bit more due to component tollerances),
 // and it takes 4.24 us to process (the interrupt invocation overhead not taken into account).
 ISR(INT7_vect) {
+  #if (defined(FANCHECK) && defined(TACH_1) && (TACH_1 >-1))
 	//measuring speed now works for fanSpeed > 18 (approximately), which is sufficient because MIN_PRINT_FAN_SPEED is higher
 
 	if (fanSpeed < MIN_PRINT_FAN_SPEED) return;
@@ -8607,17 +8609,20 @@ ISR(INT7_vect) {
 			fan_edge_counter[1] += 2; //we are currently counting all edges so lets count two edges for one pulse
 		}
 	}	
+  EIMSK &= ~(1 << 7);
 	EICRB ^= (1 << 6); //change edge
+  EIMSK |= (1 << 7);
+  
+#endif
 }
 
-#endif
 
 #ifdef UVLO_SUPPORT
 void setup_uvlo_interrupt() {
 	
   EIMSK &= ~(1 << 4);
   DDRE &= ~(1 << 4); //input pin
-	PORTE &= ~(1 << 4); //no internal pull-up
+	PORTE |= (1 << 4); //no internal pull-up
 
 						//sensing falling edge
 	EICRB |= (1 << 1);
