@@ -43,7 +43,9 @@ The primary enhancement in this Firmware are a number of new TMC stepper driver 
 
 Expect more codes to be added in the future. 
 
-For now, none of these settings are stored in the EEPROM so will not persist over a reset.  You'll need to change them in `Configuration_prusa.h` and recompile to permanently change them.  This serves two purposes:  you can easily return to a known good configuration after a reset, and to make sure that one can flash the stock firmware back to the printer without needing to erase the EEPROM as well (and recalibrate everything, etc. etc.).
+For now, none of these settings are stored in the EEPROM so will not persist over a reset.  You'll need to change them in `Configuration_prusa.h` and recompile to permanently change them.  A safer and easier alternative would be to add them to the start gcode in your favorite slicer program.  
+
+Not saving these settings serves two important purposes:  you can easily return to a known good configuration after a reset, and to make sure that one can flash the stock firmware back to the printer without needing to erase the EEPROM as well (and recalibrate everything, etc. etc.) by keeping the EEPROM code identical to the stock firmware. 
 
 ## Tweaks & Fixes
 
@@ -57,18 +59,18 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
   * Completely rewritten TMC driver section:
   ```c++
   // =========== Microstepping Resolution ===========================================
-  //                              {  X,   Y,   Z,   E}
+  //                             {  X,   Y,   Z,   E}
   #define TMC2130_USTEPS   		      16,  16,  16,  32  // Microstepping mode
-  #define TMC2130_STEP_INTERP     {  1,   1,   1,   1} // 256 microstep interpolation 
+  #define TMC2130_STEP_INTERP    {  1,   1,   1,   1} // 256 microstep interpolation 
   // ================================================================================
   
   
   // =========== PWM Chopper Config ========================================
   //                          {  X,   Y,   Z,   E}
-  #define TMC2130_PWM_GRAD		{  2,   2,   4,   4} // [MC] Stock Values
-  #define TMC2130_PWM_AMPL		{230, 235, 200, 240} // [MC] Stock Values
-  #define TMC2130_PWM_AUTO 		{  1,   1,   1,   1} // [MC] Stock Values
-  #define TMC2130_PWM_FREQ 		{  2,   2,   2,   2} // [MC] Stock Values
+  #define TMC2130_PWM_GRAD	  	{  2,   2,   4,   4} // [MC] Stock Values
+  #define TMC2130_PWM_AMPL	  	{230, 235, 200, 240} // [MC] Stock Values
+  #define TMC2130_PWM_AUTO  		{  1,   1,   1,   1} // [MC] Stock Values
+  #define TMC2130_PWM_FREQ  		{  2,   2,   2,   2} // [MC] Stock Values
   
   #define TMC2130_TPWMTHRS  0     
   // These two settings do nothing unless TMC2130_TPWMTHRS isn't 0.  
@@ -83,7 +85,7 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
   #define TMC2130_SG_HOMING	1      // stallguard homing
   //                              {  X,   Y,   Z,   E}
   #define TMC2130_HOME_SG_THRS _sg(  3,   3,   4,   3) // [MC] Homing threshold
-  #define TMC2130_SG_THRS 	   _sg(  3,   3,   4,   3) // [MC] Printing threshold
+  #define TMC2130_SG_THRS 	    _sg(  3,   3,   4,   3) // [MC] Printing threshold
   // =============================================================================
   
   
@@ -92,23 +94,23 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
   // For a 0.22 Ohm Rsense resistor (Einsy RAMBO), actual RMS currents are:
   /*                                          value+1
      For value < 31, current in milliamps =  –––––––– * 0.53
-  										      32
+                                										      32
   
                                              value-31
      For value > 31, current in milliamps = ––––––––– * 0.943
                                                 32
   */
   //                              {  X,   Y,   Z,   E}
-  #define TMC2130_CURRENTS_HOME 	{  8,  10,  20,  18}
-  #define TMC2130_CURRENTS 		    { 16,  20,  35,  30}
+  #define TMC2130_CURRENTS_HOME  	{  8,  10,  20,  18}
+  #define TMC2130_CURRENTS 		     { 16,  20,  35,  30}
   #define TMC2130_UNLOAD_CURRENT                   12
   // =======================================================================
   
   
   // =========== SpreadCycle Config ===================
   //                                 X,   Y,   Z,   E
-  #define TMC2130_TOFF 			         3,   3,   3,   3
-  #define TMC2130_HSTART			       5,   5,   5,   5
+  #define TMC2130_TOFF 			           3,   3,   3,   3
+  #define TMC2130_HSTART			          5,   5,   5,   5
   #define TMC2130_HEND               1,   1,   1,   1
   #define TMC2130_BLANK_TIME         2,   2,   2,   2
   // =================================================
