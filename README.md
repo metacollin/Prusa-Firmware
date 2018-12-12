@@ -1,6 +1,6 @@
 # Prusa Alternative Firmware
 
-**In case someone manages to stumble upon this, the readme is only half done.  I need to go to bed =P.**
+**In case someone manages to stumble upon this in the next 24 hours before I finish, the readme is only half done.  I need to go to bed for now =P.**
 
 ## What is this?
 
