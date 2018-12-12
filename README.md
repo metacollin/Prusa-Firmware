@@ -92,7 +92,7 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
 // =========== Motor Currents ============================================
 // [MC] Values are scaling factors, not milliamps.
 // For a 0.22 Ohm Rsense resistor (Einsy RAMBO), actual RMS currents are:
-/*                                         value+1
+/*                                       value+1
    For value < 31, current in milliamps =  –––––––– * 0.53
                                               32
 
