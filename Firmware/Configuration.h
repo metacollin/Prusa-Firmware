@@ -11,7 +11,7 @@
 #define FW_COMMIT_NR   1749
 // FW_VERSION_UNKNOWN means this is an unofficial build.
 // The firmware should only be checked into github with this symbol.
-#define FW_DEV_VERSION FW_VERSION_UNKNOWN
+#define FW_DEV_VERSION FW_VERSION_MC
 #define FW_REPOSITORY "Unknown"
 #define FW_VERSION_FULL FW_VERSION "-" STR(FW_COMMIT_NR)
 
@@ -33,6 +33,9 @@
 // This is an unofficial build. The firmware should only be checked into github with this symbol,
 // the build server shall never produce builds with this build type.
 #define FW_VERSION_UNKNOWN  0
+
+// [MC]
+#define FW_VERSION_MC 7
 
 #if FW_DEV_VERSION == FW_VERSION_DEBUG
 #define DEBUG_BUILD

@@ -979,6 +979,10 @@ inline bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, i
 	bool endstops_enabled  = enable_endstops(true);
     bool endstop_z_enabled = enable_z_endstop(false);
     float z = 0.f;
+
+    #ifdef ENHANCED_Z_LEVELING
+    float mc = 0.f;
+    #endif
     endstop_z_hit_on_purpose();
 
     // move down until you find the bed
@@ -1011,12 +1015,26 @@ inline bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, i
 //        SERIAL_ECHOLNPGM("");
 		float dz = i?abs(current_position[Z_AXIS] - (z / i)):0;
         z += current_position[Z_AXIS];
+
+
+#ifdef ENHANCED_Z_LEVELING
+
+        if (i < 3)
+        {
+        mc += current_position[Z_AXIS];
+        }
+#endif
+
 //		printf_P(PSTR(" Z[%d] = %d, dz=%d\n"), i, (int)(current_position[Z_AXIS] * 1000), (int)(dz * 1000));
 		if (dz > 0.05) goto error;//deviation > 50um
     }
     current_position[Z_AXIS] = z;
     if (n_iter > 1)
         current_position[Z_AXIS] /= float(n_iter);
+
+    #ifdef ENHANCED_Z_LEVELING
+     mc /= 3.0f;
+     #endif
 
 
     enable_endstops(endstops_enabled);

@@ -34,9 +34,7 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,140}
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
 // Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
@@ -74,7 +72,19 @@
 #define Z_PAUSE_LIFT 20
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
+
+
+// [MC]
+#ifdef ENHANCED_HOMING  
+#define HOMING_FEEDRATE {4500, 4500, 800, 0}  // Faster movement makes the position stallguard detects a stall much more consistent.
+											  // And it doesn't take nearly as long as a bonus
+#define Z_HOMING_ITERS 7					  // Improves bed leveling accuracy.  How many micrometers of error that was removed
+											  // by the extra iterations will be printed out on the serial console.  
+#else
+#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // Stock settings
+#define Z_HOMING_ITERS 3
+#endif
+// [MC]
 
 //#define DEFAULT_Y_OFFSET    4.f // Default distance of Y_MIN_POS point from endstop, when the printer is not calibrated.
 /**
@@ -135,6 +145,7 @@
 #define PAT9125
 #define FILAMENT_SENSOR
 
+// [MC] Don't uncomment these, it will break things
 // Backlash - 
 //#define BACKLASH_X
 //#define BACKLASH_Y
@@ -144,8 +155,10 @@
 // this value is litlebit higher that real limit, because ambient termistor is on the board and is temperated from it,
 // temperature inside the case is around 31C for ambient temperature 25C, when the printer is powered on long time and idle
 // the real limit is 15C (same as MINTEMP limit), this is because 15C is end of scale for both used thermistors (bed, heater)
-#define MINTEMP_MINAMBIENT      25
-#define MINTEMP_MINAMBIENT_RAW  978
+
+// [MC] We're all adults here.  Reduced to 5C.  
+#define MINTEMP_MINAMBIENT      15    // [MC] 25->15, equals 5C
+#define MINTEMP_MINAMBIENT_RAW  1007  // [MC] 978->1007, equals 5C. Raw value increases as the temperature decreases
 
 #define DEBUG_DCODE3
 
@@ -186,86 +199,127 @@
 //#define FSENSOR_QUALITY
 
 
-#define LINEARITY_CORRECTION
-#define TMC2130_LINEARITY_CORRECTION
-#define TMC2130_LINEARITY_CORRECTION_XYZ
-//#define TMC2130_VARIABLE_RESOLUTION
-
-
-
 /*------------------------------------
  TMC2130 default settings
  *------------------------------------*/
 
-#define TMC2130_FCLK 12000000       // fclk = 12MHz
+// ======= [MC] Helper Macros, please ignore ================================================
+#define _sgc(n) ((uint8_t)(n) & 127) // [MC] Convert 7-bit 2's complement to 8-bit unsigned |
+#define _sg(x,y,z,e) {_sgc(x), _sgc(y), _sgc(z), _sgc(e)} // [MC]                           |
+#define _GET_0(N, _2, _3, _4) N // [MC]                                                            |
+#define GET_0(PARAMS) _GET_0(PARAMS)
+#define _GET_1(_1, N, _3, _4) N // [MC]                                                        |
+#define GET_1(PARAMS) _GET_1(PARAMS)
+#define _GET_2(_1, _2, N, _4) N // [MC]                                                    |
+#define GET_2(PARAMS) _GET_2(PARAMS)
+#define _GET_3(_1, _2, _3, N) N // [MC]                                                |
+#define GET_3(PARAMS) _GET_3(PARAMS)
+// ==========================================================================================
 
-#define TMC2130_USTEPS_XY   16        // microstep resolution for XY axes
-#define TMC2130_USTEPS_Z    16        // microstep resolution for Z axis
-#define TMC2130_USTEPS_E    32        // microstep resolution for E axis
-#define TMC2130_INTPOL_XY   1         // extrapolate 256 for XY axes
-#define TMC2130_INTPOL_Z    1         // extrapolate 256 for Z axis
-#define TMC2130_INTPOL_E    1         // extrapolate 256 for E axis
+// =========== Microstepping Resolution ===========================================
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_USTEPS   		  16,  16,  16,  32  // Microstepping mode
+#define TMC2130_STEP_INTERP     {  1,   1,   1,   1} // 256 microstep interpolation 
+// ================================================================================
 
-#define TMC2130_PWM_GRAD_X  2         // PWMCONF
-#define TMC2130_PWM_AMPL_X  230       // PWMCONF
-#define TMC2130_PWM_AUTO_X  1         // PWMCONF
-#define TMC2130_PWM_FREQ_X  2         // PWMCONF
 
-#define TMC2130_PWM_GRAD_Y  2         // PWMCONF
-#define TMC2130_PWM_AMPL_Y  235       // PWMCONF
-#define TMC2130_PWM_AUTO_Y  1         // PWMCONF
-#define TMC2130_PWM_FREQ_Y  2         // PWMCONF
+// =========== PWM Chopper Config =======================================
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_PWM_GRAD		{  2,   2,   4,   4} // [MC] Stock Values
+#define TMC2130_PWM_AMPL		{230, 235, 200, 240} // [MC] Stock Values
+#define TMC2130_PWM_AUTO 		{  1,   1,   1,   1} // [MC] Stock Values
+#define TMC2130_PWM_FREQ 		{  2,   2,   2,   2} // [MC] Stock Values
 
-#define TMC2130_PWM_GRAD_Z  4         // PWMCONF
-#define TMC2130_PWM_AMPL_Z  200       // PWMCONF
-#define TMC2130_PWM_AUTO_Z  1         // PWMCONF
-#define TMC2130_PWM_FREQ_Z  2         // PWMCONF
+#define TMC2130_TPWMTHRS  0     
+// These two settings do nothing unless TMC2130_TPWMTHRS isn't 0.  
+#define TMC2130_TCOOLTHRS        430, 430, 500, 500  // [MC] Stock Values
+#define TMC2130_THIGH     0  
+// ======================================================================
 
-#define TMC2130_PWM_GRAD_E  4         // PWMCONF
-#define TMC2130_PWM_AMPL_E  240       // PWMCONF
-#define TMC2130_PWM_AUTO_E  1         // PWMCONF
-#define TMC2130_PWM_FREQ_E  2         // PWMCONF
 
-#define TMC2130_TOFF_XYZ    3         // CHOPCONF // fchop = 27.778kHz
-#define TMC2130_TOFF_E      3         // CHOPCONF // fchop = 27.778kHz
-//#define TMC2130_TOFF_E      4         // CHOPCONF // fchop = 21.429kHz
-//#define TMC2130_TOFF_E      5         // CHOPCONF // fchop = 17.442kHz
+// =========== Stallguard Config ==============================================
+// [MC] The SG_THRS sets how large a load triggers a stall.  
+// [MC] Valid range is -64 (small load) to 63 (heavy load/crash)
+#define TMC2130_SG_HOMING	1      // stallguard homing
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_HOME_SG_THRS _sg(  3,   3,   4,   3) // [MC] Homing threshold
+#define TMC2130_SG_THRS 	 _sg(  3,   3,   4,   3) // [MC] Printing threshold
+// ============================================================================
 
-//#define TMC2130_STEALTH_E // Extruder stealthChop mode
-//#define TMC2130_CNSTOFF_E // Extruder constant-off-time mode (similar to MK2)
 
-//#define TMC2130_PWM_DIV   683         // PWM frequency divider (1024, 683, 512, 410)
-#define TMC2130_PWM_DIV   512         // PWM frequency divider (1024, 683, 512, 410)
-#define TMC2130_PWM_CLK   (2 * TMC2130_FCLK / TMC2130_PWM_DIV) // PWM frequency (23.4kHz, 35.1kHz, 46.9kHz, 58.5kHz for 12MHz fclk)
+// =========== Motor Currents ============================================
+// [MC] Values are scaling factors, not milliamps.
+// For a 0.22 Ohm Rsense resistor (Einsy RAMBO), actual RMS currents are:
+/*                                          value+1
+   For value < 31, current in milliamps =  –––––––– * 0.53
+										      32
 
-#define TMC2130_TPWMTHRS  0         // TPWMTHRS - Sets the switching speed threshold based on TSTEP from stealthChop to spreadCycle mode
-#define TMC2130_THIGH     0         // THIGH - unused
+                                           value-31
+   For value > 31, current in milliamps = ––––––––– * 0.943
+                                              32
+*/
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_CURRENTS_HOME 	{  8,  10,  20,  18}
+#define TMC2130_CURRENTS 		{ 16,  20,  35,  30}
+#define TMC2130_UNLOAD_CURRENT                   12
+// =======================================================================
 
-//#define TMC2130_TCOOLTHRS_X 450       // TCOOLTHRS - coolstep treshold
-//#define TMC2130_TCOOLTHRS_Y 450       // TCOOLTHRS - coolstep treshold
-#define TMC2130_TCOOLTHRS_X 430       // TCOOLTHRS - coolstep treshold
-#define TMC2130_TCOOLTHRS_Y 430       // TCOOLTHRS - coolstep treshold
-#define TMC2130_TCOOLTHRS_Z 500       // TCOOLTHRS - coolstep treshold
-#define TMC2130_TCOOLTHRS_E 500       // TCOOLTHRS - coolstep treshold
 
-#define TMC2130_SG_HOMING       1     // stallguard homing
-#define TMC2130_SG_THRS_X       3     // stallguard sensitivity for X axis
-#define TMC2130_SG_THRS_Y       3     // stallguard sensitivity for Y axis
-#define TMC2130_SG_THRS_Z       4     // stallguard sensitivity for Z axis
-#define TMC2130_SG_THRS_E       3     // stallguard sensitivity for E axis
+// =========== SpreadCycle Config ===================
+//                                 X,   Y,   Z,   E
+#define TMC2130_TOFF 			   3,   3,   3,   3
+#define TMC2130_HSTART			   5,   5,   5,   5
+#define TMC2130_HEND               1,   1,   1,   1
+#define TMC2130_BLANK_TIME         2,   2,   2,   2
+// =================================================
 
-//new settings is possible for vsense = 1, running current value > 31 set vsense to zero and shift both currents by 1 bit right (Z axis only)
-#define TMC2130_CURRENTS_H {16, 20, 35, 30}  // default holding currents for all axes
-#define TMC2130_CURRENTS_R {16, 20, 35, 30}  // default running currents for all axes
-#define TMC2130_UNLOAD_CURRENT_R 12			 // lowe current for M600 to protect filament sensor 
-
+// =========== Miscellaneous & Debug ==========================================
 #define TMC2130_STEALTH_Z
-
-//#define TMC2130_SERVICE_CODES_M910_M918
-
+#define TMC2130_SERVICE_CODES_M910_M918 // [MC] Also enables unofficial gcodes.
+#define LINEARITY_CORRECTION
+#define TMC2130_LINEARITY_CORRECTION
+#define TMC2130_LINEARITY_CORRECTION_XYZ
+#define TMC2130_VARIABLE_RESOLUTION 
+#define TMC2130_CHOP_MODE 0 		// 0 = spreadCycle
+#define TMC2130_RANDOM_OFF_TIME 0 	// 0 = off
+#define TMC2130_FAST_DECAY3 0 		// Not used in spreadCycle mode
 //#define TMC2130_DEBUG
 //#define TMC2130_DEBUG_WR
 //#define TMC2130_DEBUG_RD
+// ============================================================================
+
+
+
+// [MC] More helpers, please ignore
+#define TOFF_X GET_0(TMC2130_TOFF)
+#define TOFF_Y GET_1(TMC2130_TOFF)
+#define TOFF_Z GET_2(TMC2130_TOFF)
+#define TOFF_E GET_3(TMC2130_TOFF)
+
+#define HSTART_X GET_0(TMC2130_HSTART)
+#define HSTART_Y GET_1(TMC2130_HSTART)
+#define HSTART_Z GET_2(TMC2130_HSTART)
+#define HSTART_E GET_3(TMC2130_HSTART)
+
+#define HEND_X GET_0(TMC2130_HEND)
+#define HEND_Y GET_1(TMC2130_HEND)
+#define HEND_Z GET_2(TMC2130_HEND)
+#define HEND_E GET_3(TMC2130_HEND)
+
+#define BLANK_TIME_X GET_0(TMC2130_BLANK_TIME)
+#define BLANK_TIME_Y GET_1(TMC2130_BLANK_TIME)
+#define BLANK_TIME_Z GET_2(TMC2130_BLANK_TIME)
+#define BLANK_TIME_E GET_3(TMC2130_BLANK_TIME)
+
+#define TMC2130_TCOOLTHRS_X GET_0(TMC2130_TCOOLTHRS)
+#define TMC2130_TCOOLTHRS_Y GET_1(TMC2130_TCOOLTHRS)
+#define TMC2130_TCOOLTHRS_Z GET_2(TMC2130_TCOOLTHRS)
+
+#define USTEPS_X GET_0(TMC2130_USTEPS)
+#define USTEPS_Y GET_1(TMC2130_USTEPS)
+#define USTEPS_Z GET_2(TMC2130_USTEPS)
+#define USTEPS_E GET_3(TMC2130_USTEPS)
+// [MC]
 
 
 /*------------------------------------

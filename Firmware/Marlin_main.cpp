@@ -834,7 +834,9 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 void show_fw_version_warnings() {
 	if (FW_DEV_VERSION == FW_VERSION_GOLD || FW_DEV_VERSION == FW_VERSION_RC) return;
 	switch (FW_DEV_VERSION) {
-	case(FW_VERSION_ALPHA):   lcd_show_fullscreen_message_and_wait_P(_i("You are using firmware alpha version. This is development version. Using this version is not recommended and may cause printer damage."));   break;////MSG_FW_VERSION_ALPHA c=20 r=8
+  // [MC]  
+	case(FW_VERSION_MC):      lcd_display_message_fullscreen_P(_i("You are using an unofficially modified firmware. Neither Prusa Research nor metacollin (who is in no way affiliated with Prusa Research) is responsible should this firmware damage this printer.")); break;
+  case(FW_VERSION_ALPHA):   lcd_show_fullscreen_message_and_wait_P(_i("You are using firmware alpha version. This is development version. Using this version is not recommended and may cause printer damage."));   break;////MSG_FW_VERSION_ALPHA c=20 r=8
 	case(FW_VERSION_BETA):    lcd_show_fullscreen_message_and_wait_P(_i("You are using firmware beta version. This is development version. Using this version is not recommended and may cause printer damage."));    break;////MSG_FW_VERSION_BETA c=20 r=8
   case(FW_VERSION_DEVEL):
 	case(FW_VERSION_DEBUG):
@@ -1240,19 +1242,19 @@ void setup()
 	tmc2130_mres[Y_AXIS] = eeprom_read_byte((uint8_t*)EEPROM_TMC2130_Y_MRES);
 	tmc2130_mres[Z_AXIS] = eeprom_read_byte((uint8_t*)EEPROM_TMC2130_Z_MRES);
 	tmc2130_mres[E_AXIS] = eeprom_read_byte((uint8_t*)EEPROM_TMC2130_E_MRES);
-	if (tmc2130_mres[X_AXIS] == 0xff) tmc2130_mres[X_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_XY);
-	if (tmc2130_mres[Y_AXIS] == 0xff) tmc2130_mres[Y_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_XY);
-	if (tmc2130_mres[Z_AXIS] == 0xff) tmc2130_mres[Z_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_Z);
-	if (tmc2130_mres[E_AXIS] == 0xff) tmc2130_mres[E_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_E);
+	if (tmc2130_mres[X_AXIS] == 0xff) tmc2130_mres[X_AXIS] = tmc2130_usteps2mres(USTEPS_X);
+	if (tmc2130_mres[Y_AXIS] == 0xff) tmc2130_mres[Y_AXIS] = tmc2130_usteps2mres(USTEPS_Y);
+	if (tmc2130_mres[Z_AXIS] == 0xff) tmc2130_mres[Z_AXIS] = tmc2130_usteps2mres(USTEPS_Z);
+	if (tmc2130_mres[E_AXIS] == 0xff) tmc2130_mres[E_AXIS] = tmc2130_usteps2mres(USTEPS_E);
 	eeprom_update_byte((uint8_t*)EEPROM_TMC2130_X_MRES, tmc2130_mres[X_AXIS]);
 	eeprom_update_byte((uint8_t*)EEPROM_TMC2130_Y_MRES, tmc2130_mres[Y_AXIS]);
 	eeprom_update_byte((uint8_t*)EEPROM_TMC2130_Z_MRES, tmc2130_mres[Z_AXIS]);
 	eeprom_update_byte((uint8_t*)EEPROM_TMC2130_E_MRES, tmc2130_mres[E_AXIS]);
 #else //TMC2130_VARIABLE_RESOLUTION
-	tmc2130_mres[X_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_XY);
-	tmc2130_mres[Y_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_XY);
-	tmc2130_mres[Z_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_Z);
-	tmc2130_mres[E_AXIS] = tmc2130_usteps2mres(TMC2130_USTEPS_E);
+	tmc2130_mres[X_AXIS] = tmc2130_usteps2mres(USTEPS_X);
+	tmc2130_mres[Y_AXIS] = tmc2130_usteps2mres(USTEPS_Y);
+	tmc2130_mres[Z_AXIS] = tmc2130_usteps2mres(USTEPS_Z);
+	tmc2130_mres[E_AXIS] = tmc2130_usteps2mres(USTEPS_E);
 #endif //TMC2130_VARIABLE_RESOLUTION
 
 #endif //TMC2130
@@ -6679,108 +6681,353 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 
 #ifdef TMC2130_SERVICE_CODES_M910_M918
 
-	case 910: //! M910 - TMC2130 init
+case 910: //! M910 - TMC2130 init
     {
-		tmc2130_init();
+    tmc2130_init();
+    MYSERIAL.println("The following are strictly unofficial and only work with this firmware.\n");
+    MYSERIAL.println("Leave any gcode used to set an option or value blank and it will print");               
+    MYSERIAL.println("what those options or values are presently without changing them.\n");
+    MYSERIAL.println("Example:");
+    MYSERIAL.println("M912 X10 ; will set X axis current to 10, but");
+    MYSERIAL.println("M912 ; will simply print the present motor currents.\n");
+
+    MYSERIAL.println("Unofficial TMC related GCodes:");
+    MYSERIAL.println("M910 - TMC2130 Init is now automatic, so M910 prints this help menu instead.");
+    MYSERIAL.println("M911 [XYZE]int - Set TMC2130 holding currents.");
+    MYSERIAL.println("M912 [XYZE]int - Set TMC2130 running currents.");
+    MYSERIAL.println("M913 - Print all TMC2130 currents at once.");
+    MYSERIAL.println("M914 - Set normal mode");
+    MYSERIAL.println("M915 - Set silent mode");
+    MYSERIAL.println("M916 [XYZE]int - Set running stallguard threshold");
+    MYSERIAL.println("M917 [XYZE]int - Set TMC2130 pwm_ampl"); 
+    MYSERIAL.println("M918 [XYZE]int - Set TMC2130 pwm_grad");
+    MYSERIAL.println("M919 - Print all stallguard values at once.");
+    MYSERIAL.println("M922 [XYZE]int - Set TMC2130 homing currents");
+    MYSERIAL.println("M926 [XYZE]int - Set TMC2130 homing stallguard threshold");
+    MYSERIAL.println("M930 [SETB]int - Set Exturder H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)");
+    MYSERIAL.println("M931 [SETB]int - Set XYZ H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)");
+    MYSERIAL.println("M932 [ARTF]int - Set Exturder PWM_[A]mpl, PWM_g[R]ad, PWM_au[T]o, PWM_[F]req");
+    MYSERIAL.println("M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128");
+    MYSERIAL.println("M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF");
+    MYSERIAL.println("M360 - Print detailed table of every single setting for every single axis.");
+   // MYSERIAL.println("M362 - Reset all TMC related settings to firmware defaults.");
     }
     break;
 
-	case 911: //! M911 - Set TMC2130 holding currents
+  case 911: //! M911 - Set TMC2130 holding currents
     {
-		if (code_seen('X')) tmc2130_set_current_h(0, code_value());
-		if (code_seen('Y')) tmc2130_set_current_h(1, code_value());
-        if (code_seen('Z')) tmc2130_set_current_h(2, code_value());
-        if (code_seen('E')) tmc2130_set_current_h(3, code_value());
+    if (code_seen('X')) tmc2130_set_current_h(0, code_value());
+    if (code_seen('Y')) tmc2130_set_current_h(1, code_value());
+    if (code_seen('Z')) tmc2130_set_current_h(2, code_value());
+    if (code_seen('E')) tmc2130_set_current_h(3, code_value());
+    MYSERIAL.println("Holding currents:");
+    MYSERIAL.print("X   ");
+    MYSERIAL.println((int)tmc2130_current_h[0], DEC);
+    MYSERIAL.print("Y   ");
+    MYSERIAL.println((int)tmc2130_current_h[1], DEC);
+    MYSERIAL.print("Z   ");
+    MYSERIAL.println((int)tmc2130_current_h[2], DEC);
+    MYSERIAL.print("E   ");
+    MYSERIAL.println((int)tmc2130_current_h[3], DEC);
     }
     break;
 
-	case 912: //! M912 - Set TMC2130 running currents
+  case 912: //! M912 - Set TMC2130 running currents
     {
-		if (code_seen('X')) tmc2130_set_current_r(0, code_value());
-		if (code_seen('Y')) tmc2130_set_current_r(1, code_value());
-        if (code_seen('Z')) tmc2130_set_current_r(2, code_value());
-        if (code_seen('E')) tmc2130_set_current_r(3, code_value());
+    if (code_seen('X')) tmc2130_set_current_r(0, code_value());
+    if (code_seen('Y')) tmc2130_set_current_r(1, code_value());
+    if (code_seen('Z')) tmc2130_set_current_r(2, code_value());
+    if (code_seen('E')) tmc2130_set_current_r(3, code_value());
+    MYSERIAL.println("Running currents:");
+    MYSERIAL.print("X   ");
+    MYSERIAL.println((int)tmc2130_current_r[0], DEC);
+    MYSERIAL.print("Y   ");
+    MYSERIAL.println((int)tmc2130_current_r[1], DEC);
+    MYSERIAL.print("Z   ");
+    MYSERIAL.println((int)tmc2130_current_r[2], DEC);
+    MYSERIAL.print("E   ");
+    MYSERIAL.println((int)tmc2130_current_r[3], DEC);
     }
     break;
-	case 913: //! M913 - Print TMC2130 currents
+  case 913: //! M913 - Print TMC2130 currents
     {
-		tmc2130_print_currents();
-    }
-    break;
-
-	case 914: //! M914 - Set normal mode
-    {
-		tmc2130_mode = TMC2130_MODE_NORMAL;
-		update_mode_profile();
-		tmc2130_init();
-    }
-    break;
-
-	case 915: //! M915 - Set silent mode
-    {
-		tmc2130_mode = TMC2130_MODE_SILENT;
-		update_mode_profile();
-		tmc2130_init();
+    tmc2130_print_currents();
     }
     break;
 
-	case 916: //! M916 - Set sg_thrs
+  case 914: //! M914 - Set normal mode
     {
-		if (code_seen('X')) tmc2130_sg_thr[X_AXIS] = code_value();
-		if (code_seen('Y')) tmc2130_sg_thr[Y_AXIS] = code_value();
-		if (code_seen('Z')) tmc2130_sg_thr[Z_AXIS] = code_value();
-		if (code_seen('E')) tmc2130_sg_thr[E_AXIS] = code_value();
-		for (uint8_t a = X_AXIS; a <= E_AXIS; a++)
-			printf_P(_N("tmc2130_sg_thr[%c]=%d\n"), "XYZE"[a], tmc2130_sg_thr[a]);
+    tmc2130_mode = TMC2130_MODE_NORMAL;
+    update_mode_profile();
+    tmc2130_init();
     }
     break;
 
-	case 917: //! M917 - Set TMC2130 pwm_ampl
+  case 915: //! M915 - Set silent mode
     {
-		if (code_seen('X')) tmc2130_set_pwm_ampl(0, code_value());
-		if (code_seen('Y')) tmc2130_set_pwm_ampl(1, code_value());
-        if (code_seen('Z')) tmc2130_set_pwm_ampl(2, code_value());
-        if (code_seen('E')) tmc2130_set_pwm_ampl(3, code_value());
+    tmc2130_mode = TMC2130_MODE_SILENT;
+    update_mode_profile();
+    tmc2130_init();
     }
     break;
 
-	case 918: //! M918 - Set TMC2130 pwm_grad
+  case 916: // M916 Set sg_thrs
     {
-		if (code_seen('X')) tmc2130_set_pwm_grad(0, code_value());
-		if (code_seen('Y')) tmc2130_set_pwm_grad(1, code_value());
-        if (code_seen('Z')) tmc2130_set_pwm_grad(2, code_value());
-        if (code_seen('E')) tmc2130_set_pwm_grad(3, code_value());
+    if (code_seen('X')) tmc2130_sg_thr[X_AXIS] = code_value();
+    if (code_seen('Y')) tmc2130_sg_thr[Y_AXIS] = code_value();
+    if (code_seen('Z')) tmc2130_sg_thr[Z_AXIS] = code_value();
+    if (code_seen('E')) tmc2130_sg_thr[E_AXIS] = code_value();
+    MYSERIAL.print("tmc2130_sg_thr[X]=");
+    MYSERIAL.println((int)tmc2130_sg_thr[X_AXIS], DEC);
+    MYSERIAL.print("tmc2130_sg_thr[Y]=");
+    MYSERIAL.println((int)tmc2130_sg_thr[Y_AXIS], DEC);
+    MYSERIAL.print("tmc2130_sg_thr[Z]=");
+    MYSERIAL.println((int)tmc2130_sg_thr[Z_AXIS], DEC);
+    MYSERIAL.print("tmc2130_sg_thr[E]=");
+    MYSERIAL.println((int)tmc2130_sg_thr[E_AXIS], DEC);
+    }
+    break;
+
+	case 917: // M917 Set TMC2130 pwm_ampl
+    {
+    if (code_seen('X')) tmc2130_set_pwm_ampl(0, code_value());
+    if (code_seen('Y')) tmc2130_set_pwm_ampl(1, code_value());
+    if (code_seen('Z')) tmc2130_set_pwm_ampl(2, code_value());
+    if (code_seen('E')) tmc2130_set_pwm_ampl(3, code_value());
+    MYSERIAL.print("tmc2130_pwm_ampl[X]=");
+    MYSERIAL.println((int)tmc2130_pwm_ampl[X_AXIS], DEC);
+    MYSERIAL.print("tmc2130_pwm_ampl[Y]=");
+    MYSERIAL.println((int)tmc2130_pwm_ampl[Y_AXIS], DEC);
+    MYSERIAL.print("tmc2130_pwm_ampl[Z]=");
+    MYSERIAL.println((int)tmc2130_pwm_ampl[Z_AXIS], DEC);
+    MYSERIAL.print("tmc2130_pwm_ampl[E]=");
+    MYSERIAL.println((int)tmc2130_pwm_ampl[E_AXIS], DEC);
+    }
+    break;
+
+  case 918: // M918 Set TMC2130 pwm_grad
+    {
+    if (code_seen('X')) tmc2130_set_pwm_grad(0, code_value());
+    if (code_seen('Y')) tmc2130_set_pwm_grad(1, code_value());
+    if (code_seen('Z')) tmc2130_set_pwm_grad(2, code_value());
+    if (code_seen('E')) tmc2130_set_pwm_grad(3, code_value());
+    MYSERIAL.print("tmc2130_pwm_grad[X]=");
+    MYSERIAL.println((int)tmc2130_pwm_grad[X_AXIS], DEC);
+    MYSERIAL.print("tmc2130_pwm_grad[Y]=");
+    MYSERIAL.println((int)tmc2130_pwm_grad[Y_AXIS], DEC);
+    MYSERIAL.print("tmc2130_pwm_grad[Z]=");
+    MYSERIAL.println((int)tmc2130_pwm_grad[Z_AXIS], DEC);
+    MYSERIAL.print("tmc2130_pwm_grad[E]=");
+    MYSERIAL.println((int)tmc2130_pwm_grad[E_AXIS], DEC);
+    }
+    break;
+
+
+  case 922: // M922 Set TMC2130 homing currents - compliment to M912
+    {
+    if (code_seen('X')) tmc2130_set_current_r_home(0, code_value());
+    if (code_seen('Y')) tmc2130_set_current_r_home(1, code_value());
+    if (code_seen('Z')) tmc2130_set_current_r_home(2, code_value());
+    if (code_seen('E')) tmc2130_set_current_r_home(3, code_value());
+    MYSERIAL.println("Homing currents:");
+    MYSERIAL.print("X   ");
+    MYSERIAL.println((int)tmc2130_current_r_home[0], DEC);
+    MYSERIAL.print("Y   ");
+    MYSERIAL.println((int)tmc2130_current_r_home[1], DEC);
+    MYSERIAL.print("Z   ");
+    MYSERIAL.println((int)tmc2130_current_r_home[2], DEC);
+    MYSERIAL.print("E   ");
+    MYSERIAL.println((int)tmc2130_current_r_home[3], DEC);
+    }
+    break;
+
+  case 926: // M926 Set tmc2130_sg_thr_home - compliment to M916
+    {
+    if (code_seen('X')) tmc2130_sg_thr_home[X_AXIS] = code_value();
+    if (code_seen('Y')) tmc2130_sg_thr_home[Y_AXIS] = code_value();
+    if (code_seen('Z')) tmc2130_sg_thr_home[Z_AXIS] = code_value();
+    if (code_seen('E')) tmc2130_sg_thr_home[E_AXIS] = code_value();
+    MYSERIAL.print("tmc2130_sg_thr_home[X]=");
+    MYSERIAL.println((int)tmc2130_sg_thr_home[X_AXIS], DEC);
+    MYSERIAL.print("tmc2130_sg_thr_home[Y]=");
+    MYSERIAL.println((int)tmc2130_sg_thr_home[Y_AXIS], DEC);
+    MYSERIAL.print("tmc2130_sg_thr_home[Z]=");
+    MYSERIAL.println((int)tmc2130_sg_thr_home[Z_AXIS], DEC);
+    MYSERIAL.print("tmc2130_sg_thr_home[E]=");
+    MYSERIAL.println((int)tmc2130_sg_thr_home[E_AXIS], DEC);
+    }
+    break;
+
+
+  case 930: // Set chop conf
+    {
+    if (code_seen('S')) tmc2130_set_hstart(E_AXIS, code_value_uint8());
+    if (code_seen('E')) tmc2130_set_hend(E_AXIS, code_value_uint8());
+    if (code_seen('T')) tmc2130_set_toff(E_AXIS, code_value_uint8());
+    if (code_seen('B')) tmc2130_set_tbl(E_AXIS, code_value_uint8());
+    MYSERIAL.print("Extruder HSTART =");
+    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].hstr, DEC);
+    MYSERIAL.print("Extruder HEND =");
+    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].hend, DEC);
+    MYSERIAL.print("Extruder TOFF =");
+    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].toff, DEC);
+    MYSERIAL.print("Extruder TBL =");
+    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].tbl, DEC);
+    }
+    break;
+
+  case 931: // Set chop conf
+    {
+    if (code_seen('S')) {uint8_t hysteresis_start = code_value_uint8(); 
+                         tmc2130_set_hstart(X_AXIS, hysteresis_start);
+                         tmc2130_set_hstart(Y_AXIS, hysteresis_start);
+                         tmc2130_set_hstart(Z_AXIS, hysteresis_start);}
+    if (code_seen('E')) {uint8_t hysteresis_end = code_value_uint8(); 
+                         tmc2130_set_hend(X_AXIS, hysteresis_end);
+                         tmc2130_set_hend(Y_AXIS, hysteresis_end);
+                         tmc2130_set_hend(Z_AXIS, hysteresis_end);} 
+    if (code_seen('T')) {uint8_t time_off = code_value_uint8(); 
+                         tmc2130_set_toff(X_AXIS, time_off);
+                         tmc2130_set_toff(Y_AXIS, time_off);
+                         tmc2130_set_toff(Z_AXIS, time_off);} 
+    if (code_seen('B')) {uint8_t blanking_time = code_value_uint8(); 
+                         tmc2130_set_tbl(X_AXIS, blanking_time);
+                         tmc2130_set_tbl(Y_AXIS, blanking_time);
+                         tmc2130_set_tbl(Z_AXIS, blanking_time);}
+    MYSERIAL.print("XYZ HSTART =");
+    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].hstr, DEC);
+    MYSERIAL.print("XYZ HEND =");
+    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].hend, DEC);
+    MYSERIAL.print("XYZ TOFF =");
+    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].toff, DEC);
+    MYSERIAL.print("XYZ TBL =");
+    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].tbl, DEC);
+    }
+    break;
+
+  case 932:
+    {
+
+    bool do_i_init = false;
+    if (code_seen('A')) {tmc2130_set_pwm_ampl(E_AXIS, code_value_uint8()); do_i_init = true; }
+    if (code_seen('R')) {tmc2130_set_pwm_grad(E_AXIS, code_value_uint8()); do_i_init = true; }
+    if (code_seen('T')) {tmc2130_set_pwm_auto(E_AXIS, code_value_uint8()); do_i_init = true; }
+    if (code_seen('F')) {tmc2130_set_pwm_freq(E_AXIS, code_value_uint8()); do_i_init = true; }
+
+    MYSERIAL.print("Extruder PWM [A]mpl = ");
+    MYSERIAL.println((int)tmc2130_pwm_ampl[E_AXIS], DEC);
+
+    MYSERIAL.print("Extruder PWM g[R]ad = ");
+    MYSERIAL.println((int)tmc2130_pwm_grad[E_AXIS], DEC);
+
+    MYSERIAL.print("Extruder PWM au[T]o = ");
+    MYSERIAL.println((int)tmc2130_pwm_auto[E_AXIS], DEC);
+
+    MYSERIAL.print("Extruder PWM [F]req = ");
+    MYSERIAL.println((int)tmc2130_pwm_freq[E_AXIS], DEC);
+
+    if (do_i_init) tmc2130_init();
+    
     }
     break;
 
 #endif //TMC2130_SERVICE_CODES_M910_M918
 
-    case 350: //! M350 - Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
+    case 350: // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
     {
-	#ifdef TMC2130
-		if(code_seen('E'))
-		{
-			uint16_t res_new = code_value();
-			if ((res_new == 8) || (res_new == 16) || (res_new == 32) || (res_new == 64) || (res_new == 128))
-			{
-				st_synchronize();
-				uint8_t axis = E_AXIS;
-				uint16_t res = tmc2130_get_res(axis);
-				tmc2130_set_res(axis, res_new);
-				if (res_new > res)
-				{
-					uint16_t fac = (res_new / res);
-					cs.axis_steps_per_unit[axis] *= fac;
-					position[E_AXIS] *= fac;
-				}
-				else
-				{
-					uint16_t fac = (res / res_new);
-					cs.axis_steps_per_unit[axis] /= fac;
-					position[E_AXIS] /= fac;
-				}
-			}
-		}
+    #ifdef TMC2130
+    if(code_seen('E'))
+    {
+      uint16_t res_new = code_value();
+      if ((res_new == 1) || (res_new == 2) || (res_new == 4) || (res_new == 8) || (res_new == 16) || (res_new == 32) || (res_new == 64) || (res_new == 128))
+      {
+        st_synchronize();
+        uint8_t axis = E_AXIS;
+        uint16_t res = tmc2130_get_res(axis);
+        tmc2130_set_res(axis, res_new);
+        if (res_new > res)
+        {
+          uint16_t fac = (res_new / res);
+          cs.axis_steps_per_unit[axis] *= fac;
+          position[E_AXIS] *= fac;
+        }
+        else
+        {
+          uint16_t fac = (res / res_new);
+          cs.axis_steps_per_unit[axis] /= fac;
+          position[E_AXIS] /= fac;
+        }
+      }
+    }
+    if(code_seen('X'))
+    {
+      uint16_t res_new = code_value();
+      if ((res_new == 1) || (res_new == 2) || (res_new == 4) || (res_new == 8) || (res_new == 16) || (res_new == 32) || (res_new == 64) || (res_new == 128))
+      {
+        st_synchronize();
+        uint8_t axis = X_AXIS;
+        uint16_t res = tmc2130_get_res(axis);
+        tmc2130_set_res(axis, res_new);
+        if (res_new > res)
+        {
+          uint16_t fac = (res_new / res);
+          cs.axis_steps_per_unit[axis] *= fac;
+          position[X_AXIS] *= fac;
+        }
+        else
+        {
+          uint16_t fac = (res / res_new);
+          cs.axis_steps_per_unit[axis] /= fac;
+          position[X_AXIS] /= fac;
+        }
+      }
+    }
+    if(code_seen('Y'))
+    {
+      uint16_t res_new = code_value();
+      if ((res_new == 1) || (res_new == 2) || (res_new == 4) || (res_new == 8) || (res_new == 16) || (res_new == 32) || (res_new == 64) || (res_new == 128))
+      {
+        st_synchronize();
+        uint8_t axis = Y_AXIS;
+        uint16_t res = tmc2130_get_res(axis);
+        tmc2130_set_res(axis, res_new);
+        if (res_new > res)
+        {
+          uint16_t fac = (res_new / res);
+          cs.axis_steps_per_unit[axis] *= fac;
+          position[Y_AXIS] *= fac;
+        }
+        else
+        {
+          uint16_t fac = (res / res_new);
+          cs.axis_steps_per_unit[axis] /= fac;
+          position[Y_AXIS] /= fac;
+        }
+      }
+    }
+    if(code_seen('Z'))
+    {
+      uint16_t res_new = code_value();
+      if ((res_new == 1) || (res_new == 2) || (res_new == 4) || (res_new == 8) || (res_new == 16) || (res_new == 32) || (res_new == 64) || (res_new == 128))
+      {
+        st_synchronize();
+        uint8_t axis = Z_AXIS;
+        uint16_t res = tmc2130_get_res(axis);
+        tmc2130_set_res(axis, res_new);
+        if (res_new > res)
+        {
+          uint16_t fac = (res_new / res);
+          cs.axis_steps_per_unit[axis] *= fac;
+          position[Z_AXIS] *= fac;
+        }
+        else
+        {
+          uint16_t fac = (res / res_new);
+          cs.axis_steps_per_unit[axis] /= fac;
+          position[Z_AXIS] /= fac;
+        }
+      }
+    }
 	#else //TMC2130
       #if defined(X_MS1_PIN) && X_MS1_PIN > -1
         if(code_seen('S')) for(int i=0;i<=4;i++) microstep_mode(i,code_value());
@@ -6809,6 +7056,37 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
       #endif
     }
     break;
+  #ifdef TMC2130
+  case 360: //Print TMC2130 INfos
+  {
+    printf_P(PSTR("\t\t\t\tX\t\tY\t\tZ\t\tE\nPWM AMPL\t\t%i\t\t%i\t\t%i\t\t%i\nPWM GRAD\t\t%i\t\t%i\t\t%i\t\t%i\nPWM AUTO\t\t%i\t\t%i\t\t%i\t\t%i\nPWM FREQ\t\t%i\t\t%i\t\t%i\t\t%i\nMRESOLUT\t\t%i\t\t%i\t\t%i\t\t%i\nINTERPOL\t\t%i\t\t%i\t\t%i\t\t%i\nFSTDCAY3\t\t%i\t\t%i\t\t%i\t\t%i\nRNDOFFTM\t\t%i\t\t%i\t\t%i\t\t%i\nCHOPMODE\t\t%i\t\t%i\t\t%i\t\t%i\nTOFF    \t\t\t%i\t\t%i\t\t%i\t\t%i\nBLNKTIME\t\t%i\t\t%i\t\t%i\t\t%i\nHSTART  \t\t%i\t\t%i\t\t%i\t\t%i\nHEND    \t\t\t%i\t\t%i\t\t%i\t\t%i"),
+tmc2130_pwm_ampl[0], tmc2130_pwm_ampl[1], tmc2130_pwm_ampl[2], tmc2130_pwm_ampl[3],
+tmc2130_pwm_grad[0], tmc2130_pwm_grad[1], tmc2130_pwm_grad[2], tmc2130_pwm_grad[3],
+tmc2130_pwm_auto[0], tmc2130_pwm_auto[1], tmc2130_pwm_auto[2], tmc2130_pwm_auto[3],
+tmc2130_pwm_freq[0], tmc2130_pwm_freq[1], tmc2130_pwm_freq[2], tmc2130_pwm_freq[3],
+tmc2130_mres[0], tmc2130_mres[1], tmc2130_mres[2], tmc2130_mres[3],
+tmc2130_intpol[0], tmc2130_intpol[1], tmc2130_intpol[2], tmc2130_intpol[3],
+tmc2130_fd3,tmc2130_fd3,tmc2130_fd3,tmc2130_fd3,
+tmc2130_rndtf,tmc2130_rndtf,tmc2130_rndtf,tmc2130_rndtf,
+tmc2130_chm,tmc2130_chm,tmc2130_chm,tmc2130_chm,
+tmc2130_chopper_config[0].toff, tmc2130_chopper_config[1].toff, tmc2130_chopper_config[2].toff, tmc2130_chopper_config[3].toff,
+tmc2130_chopper_config[0].tbl, tmc2130_chopper_config[1].tbl, tmc2130_chopper_config[2].tbl, tmc2130_chopper_config[3].tbl,
+tmc2130_chopper_config[0].hstr, tmc2130_chopper_config[1].hstr, tmc2130_chopper_config[2].hstr, tmc2130_chopper_config[3].hstr,
+tmc2130_chopper_config[0].hend, tmc2130_chopper_config[1].hend, tmc2130_chopper_config[2].hend, tmc2130_chopper_config[3].hend);
+  }
+  break;
+  case 361: // Toggle Interpolation
+  {
+    if(code_seen('X')) { tmc2130_intpol[X_AXIS] = code_value(); printf_P(PSTR("X Axis step interpolation is %i"), tmc2130_intpol[X_AXIS]); }
+    if(code_seen('Y')) { tmc2130_intpol[Y_AXIS] = code_value(); printf_P(PSTR("Y Axis step interpolation is %i"), tmc2130_intpol[Y_AXIS]); }
+    if(code_seen('Z')) { tmc2130_intpol[Z_AXIS] = code_value(); printf_P(PSTR("Z Axis step interpolation is %i"), tmc2130_intpol[Z_AXIS]); }
+    if(code_seen('E')) { tmc2130_intpol[E_AXIS] = code_value(); printf_P(PSTR("E Axis step interpolation is %i"), tmc2130_intpol[E_AXIS]); }
+
+    tmc2130_init();
+  }
+  break;
+
+#endif
 	case 701: //! M701 - load filament
 	{
 		if (mmu_enabled && code_seen('E'))
