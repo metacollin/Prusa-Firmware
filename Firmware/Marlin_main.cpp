@@ -3986,7 +3986,7 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 
             feedrate = homing_feedrate[Z_AXIS];
 
-            find_bed_induction_sensor_point_z(-10.f, 3);
+            find_bed_induction_sensor_point_z(-10.f, Z_HOMING_ITERS);
 
 			printf_P(_N("%S X: %.5f Y: %.5f Z: %.5f\n"), _T(MSG_BED), _x, _y, _z);
 

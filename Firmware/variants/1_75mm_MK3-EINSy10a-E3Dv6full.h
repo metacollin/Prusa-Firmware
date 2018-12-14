@@ -75,7 +75,7 @@
 
 
 // [MC]
-#ifdef ENHANCED_HOMING  
+#ifdef ENHANCED_Z_LEVELING  
 #define HOMING_FEEDRATE {4500, 4500, 800, 0}  // Faster movement makes the position stallguard detects a stall much more consistent.
 											  // And it doesn't take nearly as long as a bonus
 #define Z_HOMING_ITERS 7					  // Improves bed leveling accuracy.  How many micrometers of error that was removed
@@ -290,37 +290,37 @@
 
 
 
-// [MC] More helpers, please ignore
-#define TOFF_X GET_0(TMC2130_TOFF)
-#define TOFF_Y GET_1(TMC2130_TOFF)
-#define TOFF_Z GET_2(TMC2130_TOFF)
-#define TOFF_E GET_3(TMC2130_TOFF)
-
-#define HSTART_X GET_0(TMC2130_HSTART)
-#define HSTART_Y GET_1(TMC2130_HSTART)
-#define HSTART_Z GET_2(TMC2130_HSTART)
-#define HSTART_E GET_3(TMC2130_HSTART)
-
-#define HEND_X GET_0(TMC2130_HEND)
-#define HEND_Y GET_1(TMC2130_HEND)
-#define HEND_Z GET_2(TMC2130_HEND)
-#define HEND_E GET_3(TMC2130_HEND)
-
-#define BLANK_TIME_X GET_0(TMC2130_BLANK_TIME)
-#define BLANK_TIME_Y GET_1(TMC2130_BLANK_TIME)
-#define BLANK_TIME_Z GET_2(TMC2130_BLANK_TIME)
-#define BLANK_TIME_E GET_3(TMC2130_BLANK_TIME)
-
-#define TMC2130_TCOOLTHRS_X GET_0(TMC2130_TCOOLTHRS)
-#define TMC2130_TCOOLTHRS_Y GET_1(TMC2130_TCOOLTHRS)
-#define TMC2130_TCOOLTHRS_Z GET_2(TMC2130_TCOOLTHRS)
-
-#define USTEPS_X GET_0(TMC2130_USTEPS)
-#define USTEPS_Y GET_1(TMC2130_USTEPS)
-#define USTEPS_Z GET_2(TMC2130_USTEPS)
-#define USTEPS_E GET_3(TMC2130_USTEPS)
-// [MC]
-
+// ======= [MC] More Helper Macros, please ignore
+#define TOFF_X GET_0(TMC2130_TOFF) //                  |
+#define TOFF_Y GET_1(TMC2130_TOFF) //                  |
+#define TOFF_Z GET_2(TMC2130_TOFF) //                  |
+#define TOFF_E GET_3(TMC2130_TOFF) //                  |
+//                                                     |
+#define HSTART_X GET_0(TMC2130_HSTART) //              |
+#define HSTART_Y GET_1(TMC2130_HSTART) //              |
+#define HSTART_Z GET_2(TMC2130_HSTART) //              |
+#define HSTART_E GET_3(TMC2130_HSTART) //              |
+//                                                     |
+#define HEND_X GET_0(TMC2130_HEND) //                  |
+#define HEND_Y GET_1(TMC2130_HEND) //                  |
+#define HEND_Z GET_2(TMC2130_HEND) //                  |
+#define HEND_E GET_3(TMC2130_HEND) //                  |
+//                                                     |
+#define BLANK_TIME_X GET_0(TMC2130_BLANK_TIME) //      |
+#define BLANK_TIME_Y GET_1(TMC2130_BLANK_TIME) //      |
+#define BLANK_TIME_Z GET_2(TMC2130_BLANK_TIME) //      |
+#define BLANK_TIME_E GET_3(TMC2130_BLANK_TIME) //      |
+//                                                     |
+#define TMC2130_TCOOLTHRS_X GET_0(TMC2130_TCOOLTHRS) //|
+#define TMC2130_TCOOLTHRS_Y GET_1(TMC2130_TCOOLTHRS) //|
+#define TMC2130_TCOOLTHRS_Z GET_2(TMC2130_TCOOLTHRS) //|
+//                                                     |
+#define USTEPS_X GET_0(TMC2130_USTEPS) //              |
+#define USTEPS_Y GET_1(TMC2130_USTEPS) //              |
+#define USTEPS_Z GET_2(TMC2130_USTEPS) //              |
+#define USTEPS_E GET_3(TMC2130_USTEPS) //              |
+// [MC]                                                |
+// =====================================================
 
 /*------------------------------------
  EXTRUDER SETTINGS
