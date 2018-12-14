@@ -1,118 +1,133 @@
-# Table of contents
+# Prusa Alternative Firmware
 
-<!--ts-->
-   * [Linux build](#linux)
-   * [Windows build](#windows)
-   * [Automated tests](#3-automated-tests)
-   * [Documentation](#4-documentation)
-<!--te-->
+**Do not use yet.**
+
+## What is this?
+
+This project grew out of my own fairly modest tinkering of the stock Prusa MK3 firmware.  This firmware is by no means 'better' than Prusa Research's own stock firmware, nor will the average user gain any benefit from using it.  
+
+If you want greater control over some of the more advanced and low level features of your printer, or would like a more generalized firmware with certain bugs fixed that are only bugs if you have a non-standard printer configuration, then it might be worth your time to take a look at this firmware.  
+
+A quick example of what I mean:  The stock firmware's XYZ Calibration does not respect the `#define INVERT_<X,Y,Z or E>_AXIS <...>` lines in `Configuration_prusa.h`.  Which is fine - the MK3 doesn't invert any of its X, Y, or Z axes so it doesn't really matter.  
+
+However, if your printer DOES invert one of the axes, then it definitely will be a problem with the stock firmware, but not in this firmware.  
+
+I try to keep this relatively up-to-date with the latest development version of the firmware, but it will likely be a cautious few commits behind, as this is the firmware I use day to day on my own printer, and only push a new update that pulls in the latest Prusa changes after I know it doesn't break anything (or at least, not obviously ;)  ).
 
 
-# Build
-## Linux
-Run shell script build.sh to build for MK3 and flash with Sli3er.  
-If you have different printel model, follow step [2.b](#2b) from Windows build first.  
-If you wish to flash from Arduino, follow step [2.c](#2c) from Windows build first.  
+## Unofficial Nonstandard Gcodes
 
-The script downloads Arduino with our modifications and Rambo board support installed, unpacks it into folder PF-build-env-\<version\> on the same level, as your Prusa-Firmware folder is located, builds firmware for MK3 using that Arduino in Prusa-Firmware-build folder on the same level as Prusa-Firmware, runs secondary language support scripts. Firmware with secondary language support is generated in lang subfolder. Use firmware.hex for MK3 variant. Use firmware_\<lang\>.hex for other printers. Don't forget to follow step [2.b](#2b) first for non-MK3 printers.
-## Windows
-### 1. Development environment preparation
+The primary enhancement in this Firmware are a number of new TMC stepper driver related gcodes.  Please understand that I just made these up, these gcodes are completely unofficial and are not in any spec, and never will be.  They work with this firmware and only this firmware, and if they exist at all in other firmwares, they almost certainly do something very different.  
 
-   a. install `"Arduino Software IDE"` for your preferred operating system  
-`https://www.arduino.cc -> Software->Downloads`  
-it is recommended to use older version `"1.6.9"`, as it is used on out build server to produce official builds.  
-_note: in the case of persistent compilation problems, check the version of the currently used C/C++ compiler (GCC) - should be `4.8.1`; version can be verified by entering the command  
-`avr-gcc --version`  
-if you are not sure where the file is placed (depends on how `"Arduino Software IDE"` was installed), you can use the search feature within the file system_  
-_note: name collision for `"LiquidCrystal"` library known from previous versions is now obsolete (so there is no need to delete or rename original file/-s)_
+**Note 1:** Any gcodes that change motor settings are applied immediately, so you do not need to call M910 (tmc2130_init in the stock firwmare) at all.  In fact, you don't even have to pause - all settings, even the microstepping resolution, can be changed during a print without issue.  
 
-   b. add (`UltiMachine`) `RAMBo` board into the list of Arduino target boards  
-`File->Preferences->Settings`  
-into text field `"Additional Boards Manager URLs"`  
-type location  
-`"https://raw.githubusercontent.com/ultimachine/ArduinoAddons/master/package_ultimachine_index.json"`  
-or you can 'manually' modify the item  
-`"boardsmanager.additional.urls=....."`  
-at the file `"preferences.txt"` (this parameter allows you to write a comma-separated list of addresses)  
-_note: you can find location of this file on your disk by following way:  
-`File->Preferences->Settings`  (`"More preferences can be edited in file ..."`)_  
-than do it  
-`Tools->Board->BoardsManager`  
-from viewed list select an item `"RAMBo"` (will probably be labeled as `"RepRap Arduino-compatible Mother Board (RAMBo) by UltiMachine"`  
-_note: select this item for any variant of board used in printers `'Prusa i3 MKx'`, that is for `RAMBo-mini x.y` and `EINSy x.y` to_  
-'clicking' the item will display the installation button; select choice `"1.0.1"` from the list(last known version as of the date of issue of this document)  
-_(after installation, the item is labeled as `"INSTALLED"` and can then be used for target board selection)_  
+**Note 2:** All set gcodes double as print gcodes.  If you issue one of the set gcodes but without any arguments, it will print the current values without altering them.  Even when setting a value, it will still print the updated values afterwards to confirm the changes were applied. 
 
-   c. modify platform.txt to enable float printf support:  
-add "-Wl,-u,vfprintf -lprintf_flt -lm" to "compiler.c.elf.flags=" before existing flag "-Wl,--gc-sections"  
-example:  
-`"compiler.c.elf.flags=-w -Os -Wl,-u,vfprintf -lprintf_flt -lm -Wl,--gc-sections"`
 
-### 2. Source code compilation
+* `M910 - Handy help command that will print out all of the motor related gcodes, how to use them, and what they do.`
+* `M911 [XYZE]int - Set TMC2130 holding currents.`
+* `M912 [XYZE]int - Set TMC2130 running currents.`
+* `M913 - Print all TMC2130 currents at once.`
+* `M914 - Set normal mode.`
+* `M915 - Set silent mode.`
+* `M916 [XYZE]int - Set running stallguard threshold.`
+* `M919 - Print all stallguard values at once.`
+* `M922 [XYZE]int - Set TMC2130 homing currents.`
+* `M926 [XYZE]int - Set TMC2130 homing stallguard threshold.`
+* `M930 [SETB]int - Set Exturder H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL).`
+* `M931 [SETB]int - Set XYZ H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL).`
+* `M932 [ARTF]int - Set Exturder PWM_[A]mpl, PWM_g[R]ad, PWM_au[T]o, PWM_[F]req.`
+* `M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128.`
+* `M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF.`
+* `M360 - Print detailed table of every single setting for every single axis.`
 
-a. place the source codes corresponding to your printer model obtained from the repository into the selected directory on your disk  
-`https://github.com/prusa3d/Prusa-Firmware/`  
+Expect more codes to be added in the future. 
 
-b.<a name="2b"></a> In the subdirectory `"Firmware/variants/"` select the configuration file (`.h`) corresponding to your printer model, make copy named `"Configuration_prusa.h"` (or make simple renaming) and copy it into `"Firmware/"` directory.  
+For now, none of these settings are stored in the EEPROM so will not persist over a reset.  You'll need to change them in `Configuration_prusa.h` and recompile to permanently change them.  A safer and easier alternative would be to add them to the start gcode in your favorite slicer program.  
 
-c.<a name="2c"></a> In file `"Firmware/config.h"` set LANG_MODE to 0.
+Not saving these settings serves two important purposes:  you can easily return to a known good configuration after a reset, and to make sure that one can flash the stock firmware back to the printer without needing to erase the EEPROM as well (and recalibrate everything, etc. etc.) by keeping the EEPROM code identical to the stock firmware. 
 
-run `"Arduino IDE"`; select the file `"Firmware.ino"` from the subdirectory `"Firmware/"` at the location, where you placed the source codes  
-`File->Open`  
-make the desired code customizations; **all changes are on your own risk!**  
+## Tweaks & Fixes
 
-select the target board `"RAMBo"`  
-`Tools->Board->RAMBo`  
-_note: it is not possible to use any of the variants `"Arduino Mega …"`, even though it is the same MCU_  
+This is not an exhaustive list.  You can find actual areas where I have changed or added code by searching for the `[MC]` tag with your favorite text editor, IDE, or directly on Github.
 
-run the compilation  
-`Sketch->Verify/Compile`  
 
-upload the result code into the connected printer  
-`Sketch->Upload`  
+1. The minimum print temperature has been reduced from 15°C to 5°C.  We're all adults here, we can handle this responsibility.
+2. There is a less annoying warning message upon boot that will auto clear itself instead of requiring you to push a button.
+3. `Configuration_prusa.h` is symlinked to the correct variant, and only the MK3 varient is supported.
+4. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, all deadweight (code that has no effect) has been removed from the config file as well.
+  * Completely rewritten TMC driver section:
+  ```c++
+// =========== Microstepping Resolution ===========================================
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_USTEPS            16,  16,  16,  32  // Microstepping mode
+#define TMC2130_STEP_INTERP     {  1,   1,   1,   1} // 256 microstep interpolation 
+// ================================================================================
 
-or you can also save the output code to the file (in so called `HEX`-format) `"Firmware.ino.rambo.hex"`:  
-`Sketch->ExportCompiledBinary`  
-and then upload it to the printer using the program `"FirmwareUpdater"`  
-_note: this file is created in the directory `"Firmware/"`_  
 
-# 3. Automated tests
-## Prerequisites
-c++11 compiler e.g. g++ 6.3.1
+// =========== PWM Chopper Config =======================================
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_PWM_GRAD        {  2,   2,   4,   4} // [MC] Stock Values
+#define TMC2130_PWM_AMPL        {230, 235, 200, 240} // [MC] Stock Values
+#define TMC2130_PWM_AUTO        {  1,   1,   1,   1} // [MC] Stock Values
+#define TMC2130_PWM_FREQ        {  2,   2,   2,   2} // [MC] Stock Values
 
-cmake
+#define TMC2130_TPWMTHRS  0     
+// These two settings do nothing unless TMC2130_TPWMTHRS isn't 0.  
+#define TMC2130_TCOOLTHRS        430, 430, 500, 500  // [MC] Stock Values
+#define TMC2130_THIGH     0  
+// ======================================================================
 
-build system - ninja or gnu make
 
-## Building
-Create folder where you want to build tests.
+// =========== Stallguard Config ==============================================
+// [MC] The SG_THRS sets how large a load triggers a stall.  
+// [MC] Valid range is -64 (small load) to 63 (heavy load/crash)
+#define TMC2130_SG_HOMING   1      // stallguard homing
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_HOME_SG_THRS _sg(  3,   3,   4,   3) // [MC] Homing threshold
+#define TMC2130_SG_THRS      _sg(  3,   3,   4,   3) // [MC] Printing threshold
+// ============================================================================
 
-Example:
 
-`cd ..`
+// =========== Motor Currents ============================================
+// [MC] Values are scaling factors, not milliamps.
+// For a 0.22 Ohm Rsense resistor (Einsy RAMBO), actual RMS currents are:
+/*                                       value+1
+   For value < 31, current in milliamps =  –––––––– * 0.53
+                                              32
 
-`mkdir Prusa-Firmware-test`
+                                           value-31
+   For value > 31, current in milliamps = ––––––––– * 0.943
+                                              32
+*/
+//                              {  X,   Y,   Z,   E}
+#define TMC2130_CURRENTS_HOME   {  8,  10,  20,  18}
+#define TMC2130_CURRENTS        { 16,  20,  35,  30}
+#define TMC2130_UNLOAD_CURRENT                   12
+// =======================================================================
 
-Generate build scripts in target folder.
 
-Example:
+// =========== SpreadCycle Config ===================
+//                                 X,   Y,   Z,   E
+#define TMC2130_TOFF               3,   3,   3,   3
+#define TMC2130_HSTART             5,   5,   5,   5
+#define TMC2130_HEND               1,   1,   1,   1
+#define TMC2130_BLANK_TIME         2,   2,   2,   2
+// =================================================
 
-`cd Prusa-Firmware-test`
+// =========== Miscellaneous & Debug ==========================================
+#define TMC2130_STEALTH_Z
+#define TMC2130_SERVICE_CODES_M910_M918 // [MC] Also enables unofficial gcodes.
+#define LINEARITY_CORRECTION
+#define TMC2130_LINEARITY_CORRECTION
+#define TMC2130_LINEARITY_CORRECTION_XYZ
+#define TMC2130_VARIABLE_RESOLUTION 
+#define TMC2130_CHOP_MODE 0         // 0 = spreadCycle
+#define TMC2130_RANDOM_OFF_TIME 0   // 0 = off
+#define TMC2130_FAST_DECAY3 0       // Not used in spreadCycle mode
+//#define TMC2130_DEBUG
+//#define TMC2130_DEBUG_WR
+//#define TMC2130_DEBUG_RD
+// ============================================================================
 
-`cmake -G "Eclipse CDT4 - Ninja" ../Prusa-Firmware`
-
-or for DEBUG build:
-
-`cmake -G "Eclipse CDT4 - Ninja" -DCMAKE_BUILD_TYPE=Debug ../Prusa-Firmware`
-
-Build it.
-
-Example:
-
-`ninja`
-
-## Runing
-`./tests`
-
-# 4. Documentation
-run [doxygen](http://www.doxygen.nl/) in Firmware folder
+  ```
