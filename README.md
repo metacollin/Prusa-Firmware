@@ -1,6 +1,6 @@
 # Prusa Alternative Firmware
 
-**This is a work in progress.  The most recent release is always the firmware I am using on my own printer.  **
+**This is a work in progress.  The most recent release is always the firmware I am using on my own printer.**
 
 ## What is this?
 
