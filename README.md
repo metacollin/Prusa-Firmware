@@ -59,8 +59,11 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
 
 1. The minimum print temperature has been reduced from 15°C to 5°C.  We're all adults here, we can handle this responsibility.
 2. Boot warning message disabled ;) (who has time for that?).
-3. `Configuration_prusa.h` is symlinked to the correct variant, and only the MK3 varient is supported.
-4. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, some deadweight (code that has no effect) has been removed.
+3. `INVERT<X,Y,Z,E>_AXIS_DIR` settings are respected during XYZ Calibration.
+4. `Configuration_prusa.h` is symlinked to the correct variant, and only the MK3 varient is supported.
+5. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, some deadweight (code that has no effect) has been removed.  New options have been addded:
+  * `#define ENHANCED_Z_LEVELING`
+    Add this for a small boost in bed leveling accuracy.  How much improvement?  Well, it will tell in pronterface or whatever if you're monitoring the serial console.  Usually it is modest, 2-5µm.  This also makes bed leveling faster by using higher feed rates (which actually improves stall guard accuracy).
   * Completely rewritten TMC driver section:
   ```c++
 // =========== Microstepping Resolution ===========================================
