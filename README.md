@@ -6,7 +6,7 @@
 
 ***This project grew out of my own fairly modest tinkering of the stock Prusa MK3 firmware.  This firmware is by no means 'better' than Prusa Research's own stock firmware, nor will the average user gain any benefit from using it.***  
 
-If you want greater control over some of the more advanced and low level features of your printer, or would like a more generalized firmware with certain bugs fixed that are only bugs if you have a non-standard printer configuration, then it might be worth your time to take a look at this firmware.  
+If you want greater control over some of the more advanced and low level features of your printer, or would like a more generalized firmware with certain hardcoded, prusa MK3 specific values changed so as not to be hardcoded (great if you have a non-standard printer configuration), then it might be worth your time to take a look at this firmware.  
 
 A quick example of what I mean:  The stock firmware's XYZ Calibration does not respect the `#define INVERT_<X,Y,Z or E>_AXIS <...>` lines in `Configuration_prusa.h`.  Instead, it is hardcoded.  This is a problem if you happen to have, say, you are using some custom parts and have your X or Y axis motors mirrored).
 
@@ -52,7 +52,7 @@ For now, none of these settings are stored in the EEPROM so will not persist ove
 
 Not saving these settings serves two important purposes:  you can easily return to a known good configuration after a reset, and to make sure that one can flash the stock firmware back to the printer without needing to erase the EEPROM as well (and recalibrate everything, etc. etc.) by keeping the EEPROM code identical to the stock firmware. 
 
-## Tweaks & Fixes
+## Tweaks 
 
 This is not an exhaustive list.  You can find actual areas where I have changed or added code by searching for the `[MC]` tag with your favorite text editor, IDE, or directly on Github.
 
@@ -63,7 +63,9 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
 4. `Configuration_prusa.h` is symlinked to the correct variant, and only the MK3 varient is supported.
 5. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, some deadweight (code that has no effect) has been removed.  New options have been addded:
   * `#define ENHANCED_Z_LEVELING`
-    Add this for a small boost in bed leveling accuracy.  How much improvement?  Well, it will tell in pronterface or whatever if you're monitoring the serial console.  Usually it is modest, 2-5µm.  This also makes bed leveling faster by using higher feed rates (which actually improves stall guard accuracy).
+    Add this for a small boost in bed leveling accuracy.  How much improvement?  Well, it will actaually tell you in the serial console.  Usually it is modest, 2-5µm.  This also makes bed leveling faster by using higher feed rates (which actually improves stall guard accuracy).
+  * `#define Z_HOMING_ITERS`
+     Manually set the number of PINDA samples taken during bed leveling and calibration. Default is 3, or 7 when using `ENHANCED_Z_LEVELING`
   * Completely rewritten TMC driver section:
   ```c++
 // =========== Microstepping Resolution ===========================================
