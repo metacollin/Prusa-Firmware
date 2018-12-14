@@ -8,9 +8,9 @@
 
 If you want greater control over some of the more advanced and low level features of your printer, or would like a more generalized firmware with certain hardcoded, prusa MK3 specific values changed so as not to be hardcoded (great if you have a non-standard printer configuration), then it might be worth your time to take a look at this firmware.  
 
-A quick example of what I mean:  The stock firmware's XYZ Calibration does not respect the `#define INVERT_<X,Y,Z or E>_AXIS <...>` lines in `Configuration_prusa.h`.  Instead, it is hardcoded.  This is a problem if you happen to have, say, you are using some custom parts and have your X or Y axis motors mirrored).
+A quick example of what I mean:  The stock firmware's XYZ Calibration does not respect the `#define INVERT_<X,Y,Z or E>_AXIS <...>` lines in `1_75mm_MK3_EINSy10a-E3Dv6full.h`.  Instead, it is hardcoded.  This is a problem if you happen to have, say, you are using some custom parts and have your X or Y axis motors mirrored).
 
-In this firmware, I've made an effort to remove any instances of hard coding I come accross, as well as remove options in `Configuration_prusa.h` that either do nothing or aren't respected.  Nothing is worse than having an option and believing changing it is doing something, when in fact, it is not doing anything.  
+In this firmware, I've made an effort to remove any instances of hard coding I come accross, as well as remove options in `1_75mm_MK3_EINSy10a-E3Dv6full.h` that either do nothing or aren't respected.  Nothing is worse than having an option and believing changing it is doing something, when in fact, it is not doing anything.  
 
 I try to keep this relatively up-to-date with the latest development version of the firmware, but it will likely be a cautious few commits behind, as this is the firmware I use day to day on my own printer, and only push a new update that pulls in the latest Prusa changes after I know it doesn't break anything (or at least, not obviously ;)  ).
 
@@ -48,7 +48,7 @@ The primary enhancement in this Firmware are a number of new TMC stepper driver 
 
 Expect more codes to be added in the future. 
 
-For now, none of these settings are stored in the EEPROM so will not persist over a reset.  You'll need to change them in `Configuration_prusa.h` and recompile to permanently change them.  A safer and easier alternative would be to add them to the start gcode in your favorite slicer program.  
+For now, none of these settings are stored in the EEPROM so will not persist over a reset.  You'll need to change them in `1_75mm_MK3_EINSy10a-E3Dv6full.h` and recompile to permanently change them.  A safer and easier alternative would be to add them to the start gcode in your favorite slicer program.  
 
 Not saving these settings serves two important purposes:  you can easily return to a known good configuration after a reset, and to make sure that one can flash the stock firmware back to the printer without needing to erase the EEPROM as well (and recalibrate everything, etc. etc.) by keeping the EEPROM code identical to the stock firmware. 
 
@@ -60,8 +60,7 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
 1. The minimum print temperature has been reduced from 15°C to 5°C.  We're all adults here, we can handle this responsibility.
 2. Boot warning message disabled ;) (who has time for that?).
 3. `INVERT<X,Y,Z,E>_AXIS_DIR` settings are respected during XYZ Calibration.
-4. `Configuration_prusa.h` is symlinked to the correct variant, and only the MK3 varient is supported.
-5. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, some deadweight (code that has no effect) has been removed.  New options have been addded:
+4. `1_75mm_MK3_EINSy10a-E3Dv6full.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, some deadweight (code that has no effect) has been removed.  New options have been addded:
   * `#define ENHANCED_Z_LEVELING`
     Add this for a small boost in bed leveling accuracy.  How much improvement?  Well, it will actaually tell you in the serial console.  Usually it is modest, 2-5µm.  This also makes bed leveling faster by using higher feed rates (which actually improves stall guard accuracy).
   * `#define Z_HOMING_ITERS`
