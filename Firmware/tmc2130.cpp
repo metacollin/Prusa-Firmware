@@ -80,31 +80,6 @@ uint16_t tmc2130_sg_err[4] = {0, 0, 0, 0};
 uint16_t tmc2130_sg_cnt[4] = {0, 0, 0, 0};
 bool tmc2130_sg_change = false;
 
-
-
-uint8_t test_wave[256] = 
-{
-//      1	  2     3     4     5     6     7     8			9    10    11    12    13    14    15    16
-	    0,    1,    1,    2,    3,   3 ,   4,     5,	    5,    6,    7,    8,    9,   10,   11,   12,  //  2
-	   13,   15,   17,   19,   21,   23,   25,   27,   	   29,   31,   32,   34,   35,   37,   38,   40,  //  4
-	   41,   43,   44,   45,   47,   48,   50,   51,       52,   54,   55,   57,   58,   59,   61,   62,  //  6
-	   64,   65,   66,   68,   69,   71,   72,   74,       75,   76,   78,   79,   81,   82,   83,   85,  //  8
-	   86,   88,   89,   90,   92,   93,   95,   96,       97,   99,  100,  101,  103,  104,  106,  107,  // 10
-	  108,  110,  111,  112,  114,  115,  116,  118,      119,  120,  122,  123,  124,  126,  127,  128,  // 12
-	  130,  131,  132,  134,  135,  136,  137,  139,      140,  141,  143,  144,  145,  146,  148,  149,  // 14
-	  150,  151,  152,  154,  155,  156,  157,  158,      160,  161,  162,  163,  164,  166,  167,  168,  // 16
-	  169,  170,  171,  172,  173,  175,  176,  177,      178,  179,  180,  181,  182,  183,  184,  185,  // 18
-	  186,  187,  188,  189,  190,  191,  192,  193,      194,  195,  196,  197,  198,  199,  200,  201,  // 20
-	  202,  203,  204,  204,  205,  206,  207,  208,      209,  210,  210,  211,  212,  213,  214,  214,  // 22
-	  215,  216,  217,  218,  218,  219,  220,  220,      221,  222,  223,  223,  224,  225,  225,  226,  // 24
-	  226,  227,  228,  228,  229,  230,  230,  231,      231,  232,  232,  233,  233,  234,  234,  235,  // 26
-	  235,  236,  236,  237,  237,  238,  238,  238,      239,  239,  240,  240,  240,  241,  241,  241,  // 28
-	  242,  242,  242,  243,  243,  243,  244,  244,      244,  244,  245,  245,  245,  245,  245,  246,  // 30
-	  246,  246,  246,  246,  246,  246,  246,  247,      247,  247,  247,  247,  247,  247,  247,  247   // 32
-};
-
-
-
 bool skip_debug_msg = false;
 
 #define DBG(args...)
@@ -305,7 +280,7 @@ void tmc2130_st_isr()
 
 bool tmc2130_update_sg()
 {
-	if (tmc2130_sg_meassure <= Z_AXIS)
+	if (tmc2130_sg_meassure <= E_AXIS)
 	{
 		uint32_t val32 = 0;
 		tmc2130_rd(tmc2130_sg_meassure, TMC2130_REG_DRV_STATUS, &val32);
@@ -589,11 +564,6 @@ void tmc2130_set_tbl(uint8_t axis, uint8_t tbl)
 {
 	tmc2130_chopper_config[axis].tbl = tbl;
 	tmc2130_setup_chopper(axis, tmc2130_mres[axis], tmc2130_current_h[axis], tmc2130_current_r[axis]);
-}
-
-void tmc2130_set_interp(uint8_t axis, bool interp)
-{
-
 }
 
 void tmc2130_set_pwm_ampl(uint8_t axis, uint8_t pwm_ampl)
@@ -975,7 +945,7 @@ void tmc2130_set_wave(uint8_t axis, uint8_t amp, uint8_t fac1000)
 	if (fac1000 > TMC2130_WAVE_FAC1000_MAX) fac1000 = TMC2130_WAVE_FAC1000_MAX;
 	float fac = 0;
 	if (fac1000) fac = ((float)((uint16_t)fac1000 + 1000) / 1000); //correction factor
-//	printf_P(PSTR(" factor: %s\n"), ftostr43(fac));s
+//	printf_P(PSTR(" factor: %s\n"), ftostr43(fac));
 	uint8_t vA = 0;                //value of currentA
 	uint8_t va = 0;                //previous vA
 	int8_t d0 = 0;                //delta0
@@ -997,84 +967,6 @@ void tmc2130_set_wave(uint8_t axis, uint8_t amp, uint8_t fac1000)
 			vA = (uint8_t)((amp+1) * sin((2*PI*i + PI)/1024) + 0.5) - 1;
 		else // corrected wave
 			vA = (uint8_t)(amp * pow(sin(2*PI*i/1024), fac) + 0.5);
-		dA = vA - va; // calculate delta
-		va = vA;
-		b = -1;
-		if (dA == d0) b = 0;      //delta == delta0 => bit=0
-		else if (dA == d1) b = 1; //delta == delta1 => bit=1
-		else
-		{
-			if (dA < d0) // delta < delta0 => switch wbit down
-			{
-				//printf("dn\n");
-				b = 0;
-				switch (dA)
-				{
-				case -1: d0 = -1; d1 = 0; w[s+1] = 0; break;
-				case  0: d0 =  0; d1 = 1; w[s+1] = 1; break;
-				case  1: d0 =  1; d1 = 2; w[s+1] = 2; break;
-				default: b = -1; break;
-				}
-				if (b >= 0) { x[s] = i; s++; }
-			}
-			else if (dA > d1) // delta > delta0 => switch wbit up
-			{
-				//printf("up\n");
-				b = 1;
-				switch (dA)
-				{
-				case  1: d0 =  0; d1 = 1; w[s+1] = 1; break;
-				case  2: d0 =  1; d1 = 2; w[s+1] = 2; break;
-				case  3: d0 =  2; d1 = 3; w[s+1] = 3; break;
-				default: b = -1; break;
-				}
-			    if (b >= 0) { x[s] = i; s++; }
-			}
-		}
-		if (b < 0) break; // delta out of range (<-1 or >3)
-		if (s > 3) break; // segment out of range (> 3)
-		//printf("%d\n", vA);
-		if (b == 1) reg |= 0x80000000;
-		if ((i & 31) == 31)
-			tmc2130_wr_MSLUT(axis, (uint8_t)(i >> 5), reg);
-		else
-			reg >>= 1;
-//		printf("%3d\t%3d\t%2d\t%2d\t%2d\t%2d    %08x\n", i, vA, dA, b, w[s], s, reg);
-	}
-	tmc2130_wr_MSLUTSEL(axis, x[0], x[1], x[2], w[0], w[1], w[2], w[3]);
-}
-
-void tmc2130_set_wave(uint8_t axis, uint8_t amp, uint8_t* wave_array)
-{
-// TMC2130 wave compression algorithm
-// optimized for minimal memory requirements
-//	printf_P(PSTR("tmc2130_set_wave %hhd %hhd\n"), axis, fac1000);
-
-	//if (fac1000 < TMC2130_WAVE_FAC1000_MIN) fac1000 = 0;
-	//if (fac1000 > TMC2130_WAVE_FAC1000_MAX) fac1000 = TMC2130_WAVE_FAC1000_MAX;
-	//float fac = 0;
-	//if (fac1000) fac = ((float)((uint16_t)fac1000 + 1000) / 1000); //correction factor
-//	printf_P(PSTR(" factor: %s\n"), ftostr43(fac));s
-	uint8_t vA = 0;                //value of currentA
-	uint8_t va = 0;                //previous vA
-	int8_t d0 = 0;                //delta0
-	int8_t d1 = 1;                //delta1
-	uint8_t w[4] = {1,1,1,1};      //W bits (MSLUTSEL)
-	uint8_t x[3] = {255,255,255};  //X segment bounds (MSLUTSEL)
-	uint8_t s = 0;                 //current segment
-	int8_t b;                      //encoded bit value
-    int8_t dA;                     //delta value
-	int i;                         //microstep index
-	uint32_t reg = 0;              //tmc2130 register
-	tmc2130_wr_MSLUTSTART(axis, 0, amp);
-	for (i = 0; i < 256; i++)
-	{
-		if ((i & 0x1f) == 0)
-			reg = 0;
-
-		vA = wave_array[i];
-
-
 		dA = vA - va; // calculate delta
 		va = vA;
 		b = -1;

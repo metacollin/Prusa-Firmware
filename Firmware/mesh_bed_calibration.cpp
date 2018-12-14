@@ -1033,7 +1033,19 @@ inline bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, i
         current_position[Z_AXIS] /= float(n_iter);
 
     #ifdef ENHANCED_Z_LEVELING
-     mc /= 3.0f;
+         if (n_iter > 3)
+         {
+         mc /= 3.0f;
+         mc = abs(mc - current_position[Z_AXIS])
+         mc *= 1000.0f; // convert to um
+         MYSERIAL.print("Z Probe enhanced leveling correction: ");
+         MYSERIAL.print(mc, 2);
+         MYSERIAL.println("um");
+         }
+
+    
+
+
      #endif
 
 

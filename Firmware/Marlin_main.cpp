@@ -835,7 +835,7 @@ void show_fw_version_warnings() {
 	if (FW_DEV_VERSION == FW_VERSION_GOLD || FW_DEV_VERSION == FW_VERSION_RC) return;
 	switch (FW_DEV_VERSION) {
   // [MC]  
-	case(FW_VERSION_MC):      lcd_display_message_fullscreen_P(_i("You are using an unofficially modified firmware. Neither Prusa Research nor metacollin (who is in no way affiliated with Prusa Research) is responsible should this firmware damage this printer.")); break;
+	//case(FW_VERSION_MC):      lcd_display_message_fullscreen_P(_i("You are using an unofficially modified firmware. Neither Prusa Research nor metacollin (who is in no way affiliated with Prusa Research) is responsible should this firmware damage this printer.")); break;
   case(FW_VERSION_ALPHA):   lcd_show_fullscreen_message_and_wait_P(_i("You are using firmware alpha version. This is development version. Using this version is not recommended and may cause printer damage."));   break;////MSG_FW_VERSION_ALPHA c=20 r=8
 	case(FW_VERSION_BETA):    lcd_show_fullscreen_message_and_wait_P(_i("You are using firmware beta version. This is development version. Using this version is not recommended and may cause printer damage."));    break;////MSG_FW_VERSION_BETA c=20 r=8
   case(FW_VERSION_DEVEL):
@@ -4528,10 +4528,20 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
                     lcd_calibrate_z_end_stop_manual(true); // Z-leveling (X-assembly stay up!!!)
 #endif // TMC2130
                     // ~ Z-homing (can not be used "G28", because X & Y-homing would have been done before (Z-homing))
-                    bState=enable_z_endstop(true);
+                    bState=enable_z_endstop(false);
+                    current_position[Z_AXIS] -= 1;
+                    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], homing_feedrate[Z_AXIS] / 40, active_extruder);
+                    st_synchronize();
+                    enable_z_endstop(true);
+#ifdef TMC2130
+                    tmc2130_home_enter(Z_AXIS_MASK);
+#endif // TMC2130
                     current_position[Z_AXIS] = MESH_HOME_Z_SEARCH;
                     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], homing_feedrate[Z_AXIS] / 40, active_extruder);
                     st_synchronize();
+#ifdef TMC2130
+                    tmc2130_home_exit();
+#endif // TMC2130
                     enable_z_endstop(bState);
                     } while (st_get_position_mm(Z_AXIS) > MESH_HOME_Z_SEARCH); // i.e. Z-leveling not o.k.
 //               plan_set_z_position(MESH_HOME_Z_SEARCH); // is not necessary ('do-while' loop always ends at the expected Z-position)
@@ -6684,7 +6694,7 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 case 910: //! M910 - TMC2130 init
     {
     tmc2130_init();
-    MYSERIAL.println("The following are strictly unofficial and only work with this firmware.\n");
+  /*  MYSERIAL.println("The following are strictly unofficial and only work with this firmware.\n");
     MYSERIAL.println("Leave any gcode used to set an option or value blank and it will print");               
     MYSERIAL.println("what those options or values are presently without changing them.\n");
     MYSERIAL.println("Example:");
@@ -6711,6 +6721,7 @@ case 910: //! M910 - TMC2130 init
     MYSERIAL.println("M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF");
     MYSERIAL.println("M360 - Print detailed table of every single setting for every single axis.");
    // MYSERIAL.println("M362 - Reset all TMC related settings to firmware defaults.");
+    */
     }
     break;
 

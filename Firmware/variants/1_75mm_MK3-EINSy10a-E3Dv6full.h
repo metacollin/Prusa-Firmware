@@ -206,14 +206,14 @@
 // ======= [MC] Helper Macros, please ignore ================================================
 #define _sgc(n) ((uint8_t)(n) & 127) // [MC] Convert 7-bit 2's complement to 8-bit unsigned |
 #define _sg(x,y,z,e) {_sgc(x), _sgc(y), _sgc(z), _sgc(e)} // [MC]                           |
-#define _GET_0(N, _2, _3, _4) N // [MC]                                                            |
-#define GET_0(PARAMS) _GET_0(PARAMS)
-#define _GET_1(_1, N, _3, _4) N // [MC]                                                        |
-#define GET_1(PARAMS) _GET_1(PARAMS)
-#define _GET_2(_1, _2, N, _4) N // [MC]                                                    |
-#define GET_2(PARAMS) _GET_2(PARAMS)
-#define _GET_3(_1, _2, _3, N) N // [MC]                                                |
-#define GET_3(PARAMS) _GET_3(PARAMS)
+#define _GET_0(N, _2, _3, _4) N // [MC]                                                     |
+#define GET_0(PARAMS) _GET_0(PARAMS)      //                                                |
+#define _GET_1(_1, N, _3, _4) N // [MC]                                                     |
+#define GET_1(PARAMS) _GET_1(PARAMS) //                                                     |
+#define _GET_2(_1, _2, N, _4) N // [MC]                                                     |
+#define GET_2(PARAMS) _GET_2(PARAMS) //                                                     |
+#define _GET_3(_1, _2, _3, N) N // [MC]                                                     |
+#define GET_3(PARAMS) _GET_3(PARAMS) //                                                     |
 // ==========================================================================================
 
 // =========== Microstepping Resolution ===========================================
