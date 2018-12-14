@@ -4,7 +4,7 @@
 
 ## What is this?
 
-This project grew out of my own fairly modest tinkering of the stock Prusa MK3 firmware.  This firmware is by no means 'better' than Prusa Research's own stock firmware, nor will the average user gain any benefit from using it.  
+***This project grew out of my own fairly modest tinkering of the stock Prusa MK3 firmware.  This firmware is by no means 'better' than Prusa Research's own stock firmware, nor will the average user gain any benefit from using it.***  
 
 If you want greater control over some of the more advanced and low level features of your printer, or would like a more generalized firmware with certain bugs fixed that are only bugs if you have a non-standard printer configuration, then it might be worth your time to take a look at this firmware.  
 
