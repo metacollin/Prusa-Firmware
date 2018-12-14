@@ -8,11 +8,16 @@ This project grew out of my own fairly modest tinkering of the stock Prusa MK3 f
 
 If you want greater control over some of the more advanced and low level features of your printer, or would like a more generalized firmware with certain bugs fixed that are only bugs if you have a non-standard printer configuration, then it might be worth your time to take a look at this firmware.  
 
-A quick example of what I mean:  The stock firmware's XYZ Calibration does not respect the `#define INVERT_<X,Y,Z or E>_AXIS <...>` lines in `Configuration_prusa.h`.  Which is fine - the MK3 doesn't invert any of its X, Y, or Z axes so it doesn't really matter.  
+A quick example of what I mean:  The stock firmware's XYZ Calibration does not respect the `#define INVERT_<X,Y,Z or E>_AXIS <...>` lines in `Configuration_prusa.h`.  Instead, it is hardcoded.  This is a problem if you happen to have, say, you are using some custom parts and have your X or Y axis motors mirrored).
 
-However, if your printer DOES invert one of the axes, then it definitely will be a problem with the stock firmware, but not in this firmware.  
+In this firmware, I've made an effort to remove any instances of hard coding I come accross, as well as remove options in `Configuration_prusa.h` that either do nothing or aren't respected.  Nothing is worse than having an option and believing changing it is doing something, when in fact, it is not doing anything.  
 
 I try to keep this relatively up-to-date with the latest development version of the firmware, but it will likely be a cautious few commits behind, as this is the firmware I use day to day on my own printer, and only push a new update that pulls in the latest Prusa changes after I know it doesn't break anything (or at least, not obviously ;)  ).
+
+
+Sorry, I have to include this quick butt covering clause:
+
+*Absolutely no support, warranty, or responability/liability is accepted by me, and being an unofficial Firmware modification, by Prusa Research.  By flashing this firmware, you accept sole responsibility for any damages, time lost, or wasted consumables that was caused by using this firmware.*
 
 
 ## Unofficial Nonstandard Gcodes
@@ -53,9 +58,9 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
 
 
 1. The minimum print temperature has been reduced from 15°C to 5°C.  We're all adults here, we can handle this responsibility.
-2. There is a less annoying warning message upon boot that will auto clear itself instead of requiring you to push a button.
+2. Boot warning message disabled ;) (who has time for that?).
 3. `Configuration_prusa.h` is symlinked to the correct variant, and only the MK3 varient is supported.
-4. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, all deadweight (code that has no effect) has been removed from the config file as well.
+4. `Configuration_prusa.h` has been reworked in some sections to make it easier to customize various aspects and explain what more things actually do.  Also, some deadweight (code that has no effect) has been removed.
   * Completely rewritten TMC driver section:
   ```c++
 // =========== Microstepping Resolution ===========================================
