@@ -31,3 +31,5 @@ Firmware/Doc
 /lang/text.sym
 /lang/textaddr.txt
 /build-env/
+.DS_Store
+*~
