@@ -6694,9 +6694,11 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 case 910: //! M910 - TMC2130 init
     {
     tmc2130_init();
-  /*  MYSERIAL.println("The following are strictly unofficial and only work with this firmware.\n");
+    MYSERIAL.println("The following are strictly unofficial and only work with this firmware.\n");
+
     MYSERIAL.println("Leave any gcode used to set an option or value blank and it will print");               
     MYSERIAL.println("what those options or values are presently without changing them.\n");
+
     MYSERIAL.println("Example:");
     MYSERIAL.println("M912 X10 ; will set X axis current to 10, but");
     MYSERIAL.println("M912 ; will simply print the present motor currents.\n");
@@ -6721,7 +6723,7 @@ case 910: //! M910 - TMC2130 init
     MYSERIAL.println("M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF");
     MYSERIAL.println("M360 - Print detailed table of every single setting for every single axis.");
    // MYSERIAL.println("M362 - Reset all TMC related settings to firmware defaults.");
-    */
+    
     }
     break;
 
@@ -7093,6 +7095,7 @@ tmc2130_chopper_config[0].hend, tmc2130_chopper_config[1].hend, tmc2130_chopper_
     if(code_seen('Z')) { tmc2130_intpol[Z_AXIS] = code_value(); printf_P(PSTR("Z Axis step interpolation is %i"), tmc2130_intpol[Z_AXIS]); }
     if(code_seen('E')) { tmc2130_intpol[E_AXIS] = code_value(); printf_P(PSTR("E Axis step interpolation is %i"), tmc2130_intpol[E_AXIS]); }
 
+    
     tmc2130_init();
   }
   break;
