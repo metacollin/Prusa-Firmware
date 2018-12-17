@@ -6694,14 +6694,14 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 case 910: //! M910 - TMC2130 init
     {
     tmc2130_init();
-    printf_P(PSTR("The following are strictly unofficial and only work with this firmware.\n\n"
+    printf_P(PSTR("The following are strictly unofficial and only work with this firmware.\n \n"
 
                      "Leave any gcode used to set an option or value blank and it will print\n"               
-                     "what those options or values are presently without changing them.\n\n"
+                     "what those options or values are presently without changing them.\n \n"
 
                      "Example:\n"
                      "M912 X10 ; will set X axis current to 10, but\n"
-                     "M912 ; will simply print the present motor currents.\n\n"
+                     "M912 ; will simply print the present motor currents.\n \n"
 
                      "Unofficial TMC related GCodes:\n"
                      "M910 - TMC2130 Init is now automatic, so M910 prints this help menu instead.\n"
@@ -6719,6 +6719,7 @@ case 910: //! M910 - TMC2130 init
                      "M930 [SETB]int - Set Exturder H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)\n"
                      "M931 [SETB]int - Set XYZ H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)\n"
                      "M932 [ARTF]int - Set Exturder PWM_[A]mpl, PWM_g[R]ad, PWM_au[T]o, PWM_[F]req\n"
+                     "M933 [XYZE]int - Set linearity correction factor for the given axis. Valid ranges: 30-200, and 0 to turn off."
                      "M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128\n"
                      "M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF\n"
                      "M360 - Print detailed table of every single setting for every single axis.\n"));
@@ -6903,6 +6904,54 @@ case 910: //! M910 - TMC2130 init
     
     }
     break;
+
+  case 933:
+    {
+      bool do_i_init = false;
+    if (code_seen('X'))
+    {
+      uint8_t val = code_value();
+      if ( ((val >=30) && (val <= 200)) || (val == 0))
+      {
+        tmc2130_wave_fac[X_AXIS] = val;
+        do_i_init = true;
+      }
+    } 
+
+    if (code_seen('Y'))
+    {
+      uint8_t val = code_value();
+      if ( ((val >=30) && (val <= 200)) || (val == 0))
+      {
+        tmc2130_wave_fac[Y_AXIS] = val;
+        do_i_init = true;
+      }
+    } 
+
+    if (code_seen('Z'))
+    {
+      uint8_t val = code_value();
+      if ( ((val >=30) && (val <= 200)) || (val == 0))
+      {
+        tmc2130_wave_fac[Z_AXIS] = val;
+        do_i_init = true;
+      }
+    }
+
+    if (code_seen('E'))
+    {
+      uint8_t val = code_value();
+      if ( ((val >=30) && (val <= 200)) || (val == 0))
+      {
+        tmc2130_wave_fac[E_AXIS] = val;
+        do_i_init = true;
+      }
+    } 
+
+    if (do_i_init) tmc2130_init();
+
+  }
+  break;
 
 #endif //TMC2130_SERVICE_CODES_M910_M918
 
