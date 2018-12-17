@@ -68,7 +68,7 @@ This is not an exhaustive list.  You can find actual areas where I have changed 
     Add this for a small boost in bed leveling accuracy.  How much improvement?  Well, it will actaually tell you in the serial console.  Usually it is modest, 2-5µm.  This also makes bed leveling faster by using higher feed rates (which actually improves stall guard accuracy).
   * `#define Z_HOMING_ITERS`
      Manually set the number of PINDA samples taken during bed leveling and calibration. Default is 3, or 7 when using `ENHANCED_Z_LEVELING`
-  * Completely rewritten TMC driver section:
+  * Completely rewritten TMC config section:
   ```c++
 // =========== Microstepping Resolution ===========================================
 //                              {  X,   Y,   Z,   E}
