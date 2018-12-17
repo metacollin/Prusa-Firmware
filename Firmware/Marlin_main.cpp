@@ -6694,34 +6694,34 @@ if((eSoundMode==e_SOUND_MODE_LOUD)||(eSoundMode==e_SOUND_MODE_ONCE))
 case 910: //! M910 - TMC2130 init
     {
     tmc2130_init();
-    MYSERIAL.println("The following are strictly unofficial and only work with this firmware.\n");
+    printf_P(PSTR("The following are strictly unofficial and only work with this firmware.\n\n"
 
-    MYSERIAL.println("Leave any gcode used to set an option or value blank and it will print");               
-    MYSERIAL.println("what those options or values are presently without changing them.\n");
+                     "Leave any gcode used to set an option or value blank and it will print\n"               
+                     "what those options or values are presently without changing them.\n\n"
 
-    MYSERIAL.println("Example:");
-    MYSERIAL.println("M912 X10 ; will set X axis current to 10, but");
-    MYSERIAL.println("M912 ; will simply print the present motor currents.\n");
+                     "Example:\n"
+                     "M912 X10 ; will set X axis current to 10, but\n"
+                     "M912 ; will simply print the present motor currents.\n\n"
 
-    MYSERIAL.println("Unofficial TMC related GCodes:");
-    MYSERIAL.println("M910 - TMC2130 Init is now automatic, so M910 prints this help menu instead.");
-    MYSERIAL.println("M911 [XYZE]int - Set TMC2130 holding currents.");
-    MYSERIAL.println("M912 [XYZE]int - Set TMC2130 running currents.");
-    MYSERIAL.println("M913 - Print all TMC2130 currents at once.");
-    MYSERIAL.println("M914 - Set normal mode");
-    MYSERIAL.println("M915 - Set silent mode");
-    MYSERIAL.println("M916 [XYZE]int - Set running stallguard threshold");
-    MYSERIAL.println("M917 [XYZE]int - Set TMC2130 pwm_ampl"); 
-    MYSERIAL.println("M918 [XYZE]int - Set TMC2130 pwm_grad");
-    MYSERIAL.println("M919 - Print all stallguard values at once.");
-    MYSERIAL.println("M922 [XYZE]int - Set TMC2130 homing currents");
-    MYSERIAL.println("M926 [XYZE]int - Set TMC2130 homing stallguard threshold");
-    MYSERIAL.println("M930 [SETB]int - Set Exturder H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)");
-    MYSERIAL.println("M931 [SETB]int - Set XYZ H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)");
-    MYSERIAL.println("M932 [ARTF]int - Set Exturder PWM_[A]mpl, PWM_g[R]ad, PWM_au[T]o, PWM_[F]req");
-    MYSERIAL.println("M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128");
-    MYSERIAL.println("M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF");
-    MYSERIAL.println("M360 - Print detailed table of every single setting for every single axis.");
+                     "Unofficial TMC related GCodes:\n"
+                     "M910 - TMC2130 Init is now automatic, so M910 prints this help menu instead.\n"
+                     "M911 [XYZE]int - Set TMC2130 holding currents.\n"
+                     "M912 [XYZE]int - Set TMC2130 running currents.\n"
+                     "M913 - Print all TMC2130 currents at once.\n"
+                     "M914 - Set normal mode\n"
+                     "M915 - Set silent mode\n"
+                     "M916 [XYZE]int - Set running stallguard threshold\n"
+                     "M917 [XYZE]int - Set TMC2130 pwm_ampl\n"
+                     "M918 [XYZE]int - Set TMC2130 pwm_grad\n"
+                     "M919 - Print all stallguard values at once.\n"
+                     "M922 [XYZE]int - Set TMC2130 homing currents\n"
+                     "M926 [XYZE]int - Set TMC2130 homing stallguard threshold\n"
+                     "M930 [SETB]int - Set Exturder H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)\n"
+                     "M931 [SETB]int - Set XYZ H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL)\n"
+                     "M932 [ARTF]int - Set Exturder PWM_[A]mpl, PWM_g[R]ad, PWM_au[T]o, PWM_[F]req\n"
+                     "M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128\n"
+                     "M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF\n"
+                     "M360 - Print detailed table of every single setting for every single axis.\n"));
    // MYSERIAL.println("M362 - Reset all TMC related settings to firmware defaults.");
     
     }
@@ -6733,15 +6733,11 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('Y')) tmc2130_set_current_h(1, code_value());
     if (code_seen('Z')) tmc2130_set_current_h(2, code_value());
     if (code_seen('E')) tmc2130_set_current_h(3, code_value());
-    MYSERIAL.println("Holding currents:");
-    MYSERIAL.print("X   ");
-    MYSERIAL.println((int)tmc2130_current_h[0], DEC);
-    MYSERIAL.print("Y   ");
-    MYSERIAL.println((int)tmc2130_current_h[1], DEC);
-    MYSERIAL.print("Z   ");
-    MYSERIAL.println((int)tmc2130_current_h[2], DEC);
-    MYSERIAL.print("E   ");
-    MYSERIAL.println((int)tmc2130_current_h[3], DEC);
+    printf_P(PSTR("Holding currents:\n"));
+    printf_P(PSTR("X   %i\n"), (int)tmc2130_current_h[0]);
+    printf_P(PSTR("Y   %i\n"), (int)tmc2130_current_h[1]);
+    printf_P(PSTR("Z   %i\n"), (int)tmc2130_current_h[2]);
+    printf_P(PSTR("E   %i\n"), (int)tmc2130_current_h[3]);
     }
     break;
 
@@ -6751,15 +6747,11 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('Y')) tmc2130_set_current_r(1, code_value());
     if (code_seen('Z')) tmc2130_set_current_r(2, code_value());
     if (code_seen('E')) tmc2130_set_current_r(3, code_value());
-    MYSERIAL.println("Running currents:");
-    MYSERIAL.print("X   ");
-    MYSERIAL.println((int)tmc2130_current_r[0], DEC);
-    MYSERIAL.print("Y   ");
-    MYSERIAL.println((int)tmc2130_current_r[1], DEC);
-    MYSERIAL.print("Z   ");
-    MYSERIAL.println((int)tmc2130_current_r[2], DEC);
-    MYSERIAL.print("E   ");
-    MYSERIAL.println((int)tmc2130_current_r[3], DEC);
+    printf_P(PSTR("Holding currents:\n"));
+    printf_P(PSTR("X   %i\n"), (int)tmc2130_current_r[0]);
+    printf_P(PSTR("Y   %i\n"), (int)tmc2130_current_r[1]);
+    printf_P(PSTR("Z   %i\n"), (int)tmc2130_current_r[2]);
+    printf_P(PSTR("E   %i\n"), (int)tmc2130_current_r[3]);
     }
     break;
   case 913: //! M913 - Print TMC2130 currents
@@ -6790,31 +6782,23 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('Y')) tmc2130_sg_thr[Y_AXIS] = code_value();
     if (code_seen('Z')) tmc2130_sg_thr[Z_AXIS] = code_value();
     if (code_seen('E')) tmc2130_sg_thr[E_AXIS] = code_value();
-    MYSERIAL.print("tmc2130_sg_thr[X]=");
-    MYSERIAL.println((int)tmc2130_sg_thr[X_AXIS], DEC);
-    MYSERIAL.print("tmc2130_sg_thr[Y]=");
-    MYSERIAL.println((int)tmc2130_sg_thr[Y_AXIS], DEC);
-    MYSERIAL.print("tmc2130_sg_thr[Z]=");
-    MYSERIAL.println((int)tmc2130_sg_thr[Z_AXIS], DEC);
-    MYSERIAL.print("tmc2130_sg_thr[E]=");
-    MYSERIAL.println((int)tmc2130_sg_thr[E_AXIS], DEC);
+    printf_P(PSTR("tmc2130_sg_thr[X]=%i\n"), (int)tmc2130_sg_thr[X_AXIS]);
+    printf_P(PSTR("tmc2130_sg_thr[Y]=%i\n"), (int)tmc2130_sg_thr[Y_AXIS]);
+    printf_P(PSTR("tmc2130_sg_thr[Z]=%i\n"), (int)tmc2130_sg_thr[Z_AXIS]);
+    printf_P(PSTR("tmc2130_sg_thr[E]=%i\n"), (int)tmc2130_sg_thr[E_AXIS]);
     }
     break;
 
-	case 917: // M917 Set TMC2130 pwm_ampl
+  case 917: // M917 Set TMC2130 pwm_ampl
     {
     if (code_seen('X')) tmc2130_set_pwm_ampl(0, code_value());
     if (code_seen('Y')) tmc2130_set_pwm_ampl(1, code_value());
     if (code_seen('Z')) tmc2130_set_pwm_ampl(2, code_value());
     if (code_seen('E')) tmc2130_set_pwm_ampl(3, code_value());
-    MYSERIAL.print("tmc2130_pwm_ampl[X]=");
-    MYSERIAL.println((int)tmc2130_pwm_ampl[X_AXIS], DEC);
-    MYSERIAL.print("tmc2130_pwm_ampl[Y]=");
-    MYSERIAL.println((int)tmc2130_pwm_ampl[Y_AXIS], DEC);
-    MYSERIAL.print("tmc2130_pwm_ampl[Z]=");
-    MYSERIAL.println((int)tmc2130_pwm_ampl[Z_AXIS], DEC);
-    MYSERIAL.print("tmc2130_pwm_ampl[E]=");
-    MYSERIAL.println((int)tmc2130_pwm_ampl[E_AXIS], DEC);
+    printf_P(PSTR("tmc2130_pwm_ampl[X]=%i\n"), (int)tmc2130_pwm_ampl[X_AXIS]);
+    printf_P(PSTR("tmc2130_pwm_ampl[Y]=%i\n"), (int)tmc2130_pwm_ampl[Y_AXIS]);
+    printf_P(PSTR("tmc2130_pwm_ampl[Z]=%i\n"), (int)tmc2130_pwm_ampl[Z_AXIS]);
+    printf_P(PSTR("tmc2130_pwm_ampl[E]=%i\n"), (int)tmc2130_pwm_ampl[E_AXIS]);
     }
     break;
 
@@ -6824,14 +6808,10 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('Y')) tmc2130_set_pwm_grad(1, code_value());
     if (code_seen('Z')) tmc2130_set_pwm_grad(2, code_value());
     if (code_seen('E')) tmc2130_set_pwm_grad(3, code_value());
-    MYSERIAL.print("tmc2130_pwm_grad[X]=");
-    MYSERIAL.println((int)tmc2130_pwm_grad[X_AXIS], DEC);
-    MYSERIAL.print("tmc2130_pwm_grad[Y]=");
-    MYSERIAL.println((int)tmc2130_pwm_grad[Y_AXIS], DEC);
-    MYSERIAL.print("tmc2130_pwm_grad[Z]=");
-    MYSERIAL.println((int)tmc2130_pwm_grad[Z_AXIS], DEC);
-    MYSERIAL.print("tmc2130_pwm_grad[E]=");
-    MYSERIAL.println((int)tmc2130_pwm_grad[E_AXIS], DEC);
+    printf_P(PSTR("tmc2130_pwm_grad[X]=%i\n"), (int)tmc2130_pwm_grad[X_AXIS]);
+    printf_P(PSTR("tmc2130_pwm_grad[Y]=%i\n"), (int)tmc2130_pwm_grad[Y_AXIS]);
+    printf_P(PSTR("tmc2130_pwm_grad[Z]=%i\n"), (int)tmc2130_pwm_grad[Z_AXIS]);
+    printf_P(PSTR("tmc2130_pwm_grad[E]=%i\n"), (int)tmc2130_pwm_grad[E_AXIS]);
     }
     break;
 
@@ -6843,14 +6823,10 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('Z')) tmc2130_set_current_r_home(2, code_value());
     if (code_seen('E')) tmc2130_set_current_r_home(3, code_value());
     MYSERIAL.println("Homing currents:");
-    MYSERIAL.print("X   ");
-    MYSERIAL.println((int)tmc2130_current_r_home[0], DEC);
-    MYSERIAL.print("Y   ");
-    MYSERIAL.println((int)tmc2130_current_r_home[1], DEC);
-    MYSERIAL.print("Z   ");
-    MYSERIAL.println((int)tmc2130_current_r_home[2], DEC);
-    MYSERIAL.print("E   ");
-    MYSERIAL.println((int)tmc2130_current_r_home[3], DEC);
+    printf_P(PSTR("X   %i\n"), (int)tmc2130_current_r_home[0]);
+    printf_P(PSTR("Y   %i\n"), (int)tmc2130_current_r_home[1]);
+    printf_P(PSTR("Z   %i\n"), (int)tmc2130_current_r_home[2]);
+    printf_P(PSTR("E   %i\n"), (int)tmc2130_current_r_home[3]);
     }
     break;
 
@@ -6860,14 +6836,10 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('Y')) tmc2130_sg_thr_home[Y_AXIS] = code_value();
     if (code_seen('Z')) tmc2130_sg_thr_home[Z_AXIS] = code_value();
     if (code_seen('E')) tmc2130_sg_thr_home[E_AXIS] = code_value();
-    MYSERIAL.print("tmc2130_sg_thr_home[X]=");
-    MYSERIAL.println((int)tmc2130_sg_thr_home[X_AXIS], DEC);
-    MYSERIAL.print("tmc2130_sg_thr_home[Y]=");
-    MYSERIAL.println((int)tmc2130_sg_thr_home[Y_AXIS], DEC);
-    MYSERIAL.print("tmc2130_sg_thr_home[Z]=");
-    MYSERIAL.println((int)tmc2130_sg_thr_home[Z_AXIS], DEC);
-    MYSERIAL.print("tmc2130_sg_thr_home[E]=");
-    MYSERIAL.println((int)tmc2130_sg_thr_home[E_AXIS], DEC);
+    printf_P(PSTR("tmc2130_sg_thr_home[X]=%i\n"), (int)tmc2130_sg_thr_home[X_AXIS]);
+    printf_P(PSTR("tmc2130_sg_thr_home[Y]=%i\n"), (int)tmc2130_sg_thr_home[Y_AXIS]);
+    printf_P(PSTR("tmc2130_sg_thr_home[Z]=%i\n"), (int)tmc2130_sg_thr_home[Z_AXIS]);
+    printf_P(PSTR("tmc2130_sg_thr_home[E]=%i\n"), (int)tmc2130_sg_thr_home[E_AXIS]);
     }
     break;
 
@@ -6878,14 +6850,10 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('E')) tmc2130_set_hend(E_AXIS, code_value_uint8());
     if (code_seen('T')) tmc2130_set_toff(E_AXIS, code_value_uint8());
     if (code_seen('B')) tmc2130_set_tbl(E_AXIS, code_value_uint8());
-    MYSERIAL.print("Extruder HSTART =");
-    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].hstr, DEC);
-    MYSERIAL.print("Extruder HEND =");
-    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].hend, DEC);
-    MYSERIAL.print("Extruder TOFF =");
-    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].toff, DEC);
-    MYSERIAL.print("Extruder TBL =");
-    MYSERIAL.println((int)tmc2130_chopper_config[E_AXIS].tbl, DEC);
+    printf_P(PSTR("Extruder HSTART =%i\n"), (int)tmc2130_chopper_config[E_AXIS].hstr);
+    printf_P(PSTR("Extruder HEND =%i\n"), (int)tmc2130_chopper_config[E_AXIS].hend);
+    printf_P(PSTR("Extruder TOFF =%i\n"), (int)tmc2130_chopper_config[E_AXIS].toff);
+    printf_P(PSTR("Extruder TBL =%i\n"), (int)tmc2130_chopper_config[E_AXIS].tbl);
     }
     break;
 
@@ -6907,14 +6875,10 @@ case 910: //! M910 - TMC2130 init
                          tmc2130_set_tbl(X_AXIS, blanking_time);
                          tmc2130_set_tbl(Y_AXIS, blanking_time);
                          tmc2130_set_tbl(Z_AXIS, blanking_time);}
-    MYSERIAL.print("XYZ HSTART =");
-    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].hstr, DEC);
-    MYSERIAL.print("XYZ HEND =");
-    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].hend, DEC);
-    MYSERIAL.print("XYZ TOFF =");
-    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].toff, DEC);
-    MYSERIAL.print("XYZ TBL =");
-    MYSERIAL.println((int)tmc2130_chopper_config[X_AXIS].tbl, DEC);
+    printf_P(PSTR("XYZ HSTART = %i\n"), (int)tmc2130_chopper_config[X_AXIS].hstr);
+    printf_P(PSTR("XYZ HEND = %i\n"), (int)tmc2130_chopper_config[X_AXIS].hend);
+    printf_P(PSTR("XYZ TOFF = %i\n"), (int)tmc2130_chopper_config[X_AXIS].toff);
+    printf_P(PSTR("XYZ TBL = %i\n"), (int)tmc2130_chopper_config[X_AXIS].tbl);
     }
     break;
 
@@ -6927,17 +6891,13 @@ case 910: //! M910 - TMC2130 init
     if (code_seen('T')) {tmc2130_set_pwm_auto(E_AXIS, code_value_uint8()); do_i_init = true; }
     if (code_seen('F')) {tmc2130_set_pwm_freq(E_AXIS, code_value_uint8()); do_i_init = true; }
 
-    MYSERIAL.print("Extruder PWM [A]mpl = ");
-    MYSERIAL.println((int)tmc2130_pwm_ampl[E_AXIS], DEC);
+    printf_P(PSTR("Extruder PWM [A]mpl = %i\n"), (int)tmc2130_pwm_ampl[E_AXIS]);
 
-    MYSERIAL.print("Extruder PWM g[R]ad = ");
-    MYSERIAL.println((int)tmc2130_pwm_grad[E_AXIS], DEC);
+    printf_P(PSTR("Extruder PWM g[R]ad = %i\n"), (int)tmc2130_pwm_grad[E_AXIS]);
 
-    MYSERIAL.print("Extruder PWM au[T]o = ");
-    MYSERIAL.println((int)tmc2130_pwm_auto[E_AXIS], DEC);
+    printf_P(PSTR("Extruder PWM au[T]o = %i\n"), (int)tmc2130_pwm_auto[E_AXIS]);
 
-    MYSERIAL.print("Extruder PWM [F]req = ");
-    MYSERIAL.println((int)tmc2130_pwm_freq[E_AXIS], DEC);
+    printf_P(PSTR("Extruder PWM [F]req = %i\n"), (int)tmc2130_pwm_freq[E_AXIS]);
 
     if (do_i_init) tmc2130_init();
     
@@ -7041,14 +7001,14 @@ case 910: //! M910 - TMC2130 init
         }
       }
     }
-	#else //TMC2130
+  #else //TMC2130
       #if defined(X_MS1_PIN) && X_MS1_PIN > -1
         if(code_seen('S')) for(int i=0;i<=4;i++) microstep_mode(i,code_value());
         for(int i=0;i<NUM_AXIS;i++) if(code_seen(axis_codes[i])) microstep_mode(i,(uint8_t)code_value());
         if(code_seen('B')) microstep_mode(4,code_value());
         microstep_readings();
       #endif
-	#endif //TMC2130
+  #endif //TMC2130
     }
     break;
     case 351: //! M351 - Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.
@@ -7095,7 +7055,7 @@ tmc2130_chopper_config[0].hend, tmc2130_chopper_config[1].hend, tmc2130_chopper_
     if(code_seen('Z')) { tmc2130_intpol[Z_AXIS] = code_value(); printf_P(PSTR("Z Axis step interpolation is %i"), tmc2130_intpol[Z_AXIS]); }
     if(code_seen('E')) { tmc2130_intpol[E_AXIS] = code_value(); printf_P(PSTR("E Axis step interpolation is %i"), tmc2130_intpol[E_AXIS]); }
 
-    
+
     tmc2130_init();
   }
   break;
