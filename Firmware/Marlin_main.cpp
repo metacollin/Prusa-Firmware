@@ -6908,48 +6908,58 @@ case 910: //! M910 - TMC2130 init
   case 933:
     {
       bool do_i_init = false;
-    if (code_seen('X'))
-    {
-      uint8_t val = code_value();
-      if ( ((val >=30) && (val <= 200)) || (val == 0))
+      if (code_seen('X'))
       {
-        tmc2130_wave_fac[X_AXIS] = val;
-        do_i_init = true;
-      }
-    } 
-
-    if (code_seen('Y'))
-    {
-      uint8_t val = code_value();
-      if ( ((val >=30) && (val <= 200)) || (val == 0))
+        uint8_t val = code_value();
+        if ( ((val >=30) && (val <= 200)) || (val == 0))
+        {
+          tmc2130_wave_fac[X_AXIS] = val;
+          do_i_init = true;
+        }
+      } 
+  
+      if (code_seen('Y'))
       {
-        tmc2130_wave_fac[Y_AXIS] = val;
-        do_i_init = true;
-      }
-    } 
-
-    if (code_seen('Z'))
-    {
-      uint8_t val = code_value();
-      if ( ((val >=30) && (val <= 200)) || (val == 0))
+        uint8_t val = code_value();
+        if ( ((val >=30) && (val <= 200)) || (val == 0))
+        {
+          tmc2130_wave_fac[Y_AXIS] = val;
+          do_i_init = true;
+        }
+      } 
+  
+      if (code_seen('Z'))
       {
-        tmc2130_wave_fac[Z_AXIS] = val;
-        do_i_init = true;
+        uint8_t val = code_value();
+        if ( ((val >=30) && (val <= 200)) || (val == 0))
+        {
+          tmc2130_wave_fac[Z_AXIS] = val;
+          do_i_init = true;
+        }
       }
-    }
-
-    if (code_seen('E'))
-    {
-      uint8_t val = code_value();
-      if ( ((val >=30) && (val <= 200)) || (val == 0))
+  
+      if (code_seen('E'))
       {
-        tmc2130_wave_fac[E_AXIS] = val;
-        do_i_init = true;
-      }
-    } 
+        uint8_t val = code_value();
+        if ( ((val >=30) && (val <= 200)) || (val == 0))
+        {
+          tmc2130_wave_fac[E_AXIS] = val;
+          do_i_init = true;
+        }
+      } 
+  
+      if (do_i_init) tmc2130_init();
 
-    if (do_i_init) tmc2130_init();
+      printf_P(PSTR("Non linearity correction factors\n"
+                    "(  sin(x)^(correction factor)  )\n"
+                    "\n \n"
 
+                    "X Axis:  1.%i\n"
+                    "Y Axis:  1.%i\n"
+                    "Z Axis:  1.%i\n"
+                    "E Axis:  1.%i\n"
+                    ), tmc2130_wave_fac[X_AXIS], tmc2130_wave_fac[Y_AXIS], tmc2130_wave_fac[Z_AXIS], tmc2130_wave_fac[E_AXIS]);
+  
   }
   break;
 

@@ -44,6 +44,7 @@ The primary enhancement in this Firmware are a number of new TMC stepper driver 
 * `M930 [SETB]int - Set Exturder H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL).`
 * `M931 [SETB]int - Set XYZ H[S]art, H[E]ND, [T]OFF, and [B]LANKING TIME(TBL).`
 * `M932 [ARTF]int - Set Exturder PWM_[A]mpl, PWM_g[R]ad, PWM_au[T]o, PWM_[F]req.`
+* `M933 [XYZE]int - Set linearity correction factor for the given axis. Valid ranges: 30-200, and 0 to turn off.`
 * `M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128.`
 * `M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF.`
 * `M360 - Print detailed table of every single setting for every single axis.`
