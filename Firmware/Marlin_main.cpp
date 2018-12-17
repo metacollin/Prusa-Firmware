@@ -6954,10 +6954,10 @@ case 910: //! M910 - TMC2130 init
                     "(  sin(x)^(correction factor)  )\n"
                     "\n \n"
 
-                    "X Axis:  1.%i\n"
-                    "Y Axis:  1.%i\n"
-                    "Z Axis:  1.%i\n"
-                    "E Axis:  1.%i\n"
+                    "X Axis:  1.%03d\n"
+                    "Y Axis:  1.%03d\n"
+                    "Z Axis:  1.%03d\n"
+                    "E Axis:  1.%03d\n"
                     ), tmc2130_wave_fac[X_AXIS], tmc2130_wave_fac[Y_AXIS], tmc2130_wave_fac[Z_AXIS], tmc2130_wave_fac[E_AXIS]);
   
   }
