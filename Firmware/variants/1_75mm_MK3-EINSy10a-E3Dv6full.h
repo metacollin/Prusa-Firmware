@@ -98,9 +98,6 @@
 //====== Kuo End of defines one normally needs to change ======
 
 // Steps per unit {X,Y,Z,E}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,140}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
 #ifdef SKELESTRUDER
   #define EXTRUDER_GEARRATIO_35
