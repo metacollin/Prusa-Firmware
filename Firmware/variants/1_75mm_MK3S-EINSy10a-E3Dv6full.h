@@ -171,7 +171,7 @@
 #define Y_MIN_POS -4 //orig -4
 #ifdef BMG_EXTRUDER  //kuo BMG height
   #define Z_MAX_POS 205
-#elifdef SKELESTRUDER  //Skelestruder height
+#elif defined(SKELESTRUDER)//Skelestruder height
   #define Z_MAX_POS 220
 #else
   #define Z_MAX_POS 210 //default height
