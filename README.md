@@ -185,7 +185,8 @@ Save your changes
 Compiler will complete the job. 
 If you see a warning about a missing bootloader, you probably have an older, RAMBo board 1.0.0 definition installed as your target board.
 
-6. To compile and upload to the printer, connect your computer to the USB port of EINSY. 
+6. To compile and upload to the printer, connect your computer to the USB port of EINSY. You likely need to also select serial port in Arduino. For instance, on my Mac I have to select /dev/cu.usbmodem14101 for uploads.
+
 Sketch -> Upload
 The firmware will compile and upload to printer. Do NOT interrupt the update!!!! Let it complete.
 
