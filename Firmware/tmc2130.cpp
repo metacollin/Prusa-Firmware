@@ -33,8 +33,7 @@ uint8_t tmc2130_current_r[4] = TMC2130_CURRENTS_R;
   #define Y_AXIS_current_r_home 12  //Kuo adjust y homing current slightly higher for 0.9 y
 #endif
   uint8_t tmc2130_current_r_home[4] = {X_AXIS_current_r_home, Y_AXIS_current_r_home, 20, 18};
-
-#endif //Kuo ===
+//Kuo ===
 
 //pwm_ampl
 uint8_t tmc2130_pwm_ampl[4] = {TMC2130_PWM_AMPL_X, TMC2130_PWM_AMPL_Y, TMC2130_PWM_AMPL_Z, TMC2130_PWM_AMPL_E};
