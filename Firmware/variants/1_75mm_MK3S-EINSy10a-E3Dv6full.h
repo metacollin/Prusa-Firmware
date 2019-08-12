@@ -541,7 +541,11 @@
  *------------------------------------*/
 
 // Mintemps
-#define HEATER_0_MINTEMP 15
+#ifdef SLICETHERMISTOR //Kuo
+  #define HEATER_0_MINTEMP 5
+#else
+  #define HEATER_0_MINTEMP 15
+#endif //Kuo ===
 #define HEATER_1_MINTEMP 5
 #define HEATER_2_MINTEMP 5
 #define HEATER_MINTEMP_DELAY 15000                // [ms] ! if changed, check maximal allowed value @ ShortTimer
@@ -557,9 +561,11 @@
 // Maxtemps
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
 #define HEATER_0_MAXTEMP 410
+#elif defined(SLICETHERMISTOR) //Kuo
+  #define HEATER_0_MAXTEMP 410
 #else
-#define HEATER_0_MAXTEMP 305
-#endif
+  #define HEATER_0_MAXTEMP 305
+#endif //Kuo ===
 #define HEATER_1_MAXTEMP 305
 #define HEATER_2_MAXTEMP 305
 #define BED_MAXTEMP 125
@@ -831,6 +837,8 @@
 #define TEMP_SENSOR_0 247
 #elif defined(E3D_PT100_EXTRUDER_NO_AMP)
 #define TEMP_SENSOR_0 148
+#elif defined(SLICETHERMISTOR) //Kuo Slice
+#define TEMP_SENSOR_0 800 //Kuo ===
 #else
 #define TEMP_SENSOR_0 5
 #endif
