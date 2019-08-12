@@ -5,6 +5,9 @@ Slice thermistor
 Linear Advance 1.5
 filament move changes for Slice magnum, BMG, skelestruder
 
+# MUST UPDATE RAMBO BOARD TO PRUSA RESEARCH VERSION!!!!!!
+As of 3.8.0, Prusa moved to new board definition. You can no longer compile for the Ultimachines board. New instructions for obtaining Prusa version added below.
+
 # VFA fix summary, firmware compilation, and shopping list
 
 VFA's are a solved issue with 0.9 degree stepper motors. This post is a summary of what is needed to use 0.9 degree motors.
@@ -43,29 +46,31 @@ As downloaded, the Arduino IDE does not know about the EINSY RAMBO board. You mu
 
 Additional Boards Manager URLs textfield enter...
 ```
-https://raw.githubusercontent.com/ultimachine/ArduinoAddons/master/package_ultimachine_index.json
+https://raw.githubusercontent.com/DRracer/Arduino_Boards/master/IDE_Board_Manager/package_prusa3d_index.json
 ```
 
 3. Accept (OK) new preference setting
 
 4. Tools -> Board -> Boards Manager
-Select the RAMBo board, which is listed something like "RepRap Arduino-compabilty Mother Board (RAMBo) by Ultimachine"
+
+5. Select and install the Prusa Research AVR MK3 RAMBo EINSY board
 Board info will download become noted as "Installed." Depending on server load this can take anywhere from seconds to minutes.
 
 You many need to "update" the board to get the latest version. That is 1.0.1 as of this writing.
 
-5. Close Board Manager
+6. Close Board Manager
 
-6. Tools -> Board, select RAMBo as target board. Do not select any other board.
+7. Tools -> Board, select PrusaResearch EINSY RAMBo as target board. Do not select any other board.
 
-7. QUIT Arduino IDE
+8. QUIT Arduino IDE
 
-8. Set compiler flags in platform.txt for newly installed RAMBo board
+9. (Setting compiler flags step appears to be already done by Prusa)
+Set compiler flags in platform.txt for newly installed RAMBo board
 Use your OS file search function to find platform.txt
 
 Under OSX, it will be in
 ```
-~/Library/Arduino15/packages/rambo/hardware/avr/1.0.1
+~/Library/Arduino15/packages/PrusaResearchRambo/hardware/avr/1.0.1/platform.txt
 ```
 Open platform.txt
 
@@ -80,14 +85,14 @@ Save your changes to platform.txt
 #### Obtain firmware files.
 
 0.9 degree motors require my firmware branch that contains 0.9 degree stepper support (which is this page)
-https://github.com/guykuo/Prusa-Firmware/tree/0.9-Degree-Stepper-Support
-Verify you are in my 0.9 Degree Stepper Support branch
+https://github.com/guykuo/Prusa-Firmware/edit/MK3-3.8.0-with-0.9-motors-LA15-Slice-Skelestruder-BMG/README.md
+Verify you are in my MK3-3.8.0-with-0.9-motors-LA15-Slice-Skelestruder-BMG branch
 
 Click on "Clone or Download" and DOWNLOAD ZIP to your computer
 
-Unzip the newly downloaded Prusa-Firmware-0.9-Degree-Stepper-Support.zip
+Unzip the newly downloaded Prusa-Firmware-MK3-3.8.0-with-0.9-motors-LA15-Slice-Skelestruder-BMG.zip
 
-Inside the unzipped folder "Prusa-Firmware-0.9-Degree-Stepper-Support" you will find a folder named "Firmware"
+Inside the unzipped folder "Prusa-Firmware-MK3-3.8.0-with-0.9-motors-LA15-Slice-Skelestruder-BMG" you will find a folder named "Firmware"
 That folder contains the firmware files you need. Place the firmware folder where you wish to keep it on your drive.
 
 #### Set Printer Variant
@@ -109,8 +114,8 @@ Move Configuration_prusa.h to the main firmware folder.
 
 
 #### Set Language Support
-Set language support in config.h to primary language only.
-You MUST do this. Otherwise, firmware will not run properly. Instead, your LCD will display random letters and likely boot loop.
+(This has already been done for you in my Prusa-Firmware-MK3-3.8.0-with-0.9-motors-LA15-Slice-Skelestruder-BMG branch)
+Set language support in config.h to primary language only. Otherwise, firmware will not run properly. Instead, your LCD will display random letters and likely boot loop.
 
 The changes needed are near bottom of the file. It should look like this...
 ```
