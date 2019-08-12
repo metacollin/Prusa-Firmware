@@ -90,19 +90,16 @@
 //#define SKELESTRUDER // Uncomment if you have a skelestruder. Applies the patches for load distances and Z height.
 //#define BMG_EXTRUDER //Kuo Uncomment for BMG 3:1 extruder. This also sets BMG height for you.
 //#define EXTRUDER_GEARRATIO_30 //Kuo Uncomment for extruder with gear ratio 3.0. 
-#define EXTRUDER_GEARRATIO_3375 //Kuo Uncomment for extruder with gear ratio 3.375 like 54:16 BNBSX.
+//#define EXTRUDER_GEARRATIO_3375 //Kuo Uncomment for extruder with gear ratio 3.375 like 54:16 BNBSX.
 //#define EXTRUDER_GEARRATIO_35 //Kuo Uncomment for extruder with gear ratio 3.5 like 56:16 Bunny and Bear Short Ears or Skelestruder.
 
 //====== Kuo Slice Support
-#define SLICETHERMISTOR //uncomment for Slice Thermistor
-#define SLICEMAGNUM //uncomment to increase MMU2S filament laod/unload distances for Slice Magnum
+//#define SLICETHERMISTOR //uncomment for Slice Thermistor
+//#define SLICEMAGNUM //uncomment to increase MMU2S filament laod/unload distances for Slice Magnum
 
 //====== Kuo End of defines one normally needs to change ======
 
 // Steps per unit {X,Y,Z,E}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,140}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 
 #ifdef SKELESTRUDER
   #define EXTRUDER_GEARRATIO_35
