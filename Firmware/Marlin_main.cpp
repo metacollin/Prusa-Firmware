@@ -7666,8 +7666,12 @@ case 919: //! M919 - Set TMC2130 toff Kuo
  
     }
     break;
+    
+    //end Kuo m-Codes enabled by TMC2130_SERVICE_CODES_M910_M918 ===
 
+#endif //TMC2130_SERVICE_CODES_M910_M918
 
+//Kuo MCodes that are always available
   case 924: //! M924 - Set sg_thrs_home Kuo
     {
     if (code_seen('X')) tmc2130_sg_thr_home[X_AXIS] = code_value();
@@ -7679,9 +7683,18 @@ case 919: //! M919 - Set TMC2130 toff Kuo
     }
     break;
 
-//end Kuo m-Codes ===
-		    
-#endif //TMC2130_SERVICE_CODES_M910_M918
+
+  case 925: //! M925 - Set homing feed rate Kuo
+    {
+    if (code_seen('X')) homing_feedrate[X_AXIS] = code_value();
+    if (code_seen('Y')) homing_feedrate[Y_AXIS] = code_value();
+    if (code_seen('Z')) homing_feedrate[Z_AXIS] = code_value();
+    for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
+      printf_P(_N("homing_feedrate[%c]=%f\n"), "XYZE"[a], homing_feedrate[a]);
+    }
+    break;
+//Kuo end MCodes that are always available ===
+
 
     //! ### M350 - Set microstepping mode
     // ---------------------------------------------------
