@@ -188,13 +188,13 @@
 
 //Kuo set the homing speeds (mm/min)
 #ifdef X_AXIS_MOTOR_09
-  #define HOMING_FEEDRATE_X 2000  // Kuo slower feedrate needed for reliable X 0.9 degree motor stallGuard
+  #define HOMING_FEEDRATE_X 2500  // Kuo slower feedrate needed for reliable X 0.9 degree motor stallGuard
 #else
   #define HOMING_FEEDRATE_X 3000
 #endif
 
 #ifdef Y_AXIS_MOTOR_09
-  #define HOMING_FEEDRATE_Y 2000  // Kuo slower feedrate needed for reliable Y 0.9 degree motor stallGuard
+  #define HOMING_FEEDRATE_Y 2500  // Kuo slower feedrate needed for reliable Y 0.9 degree motor stallGuard
 #else
   #define HOMING_FEEDRATE_Y 3000
 #endif
