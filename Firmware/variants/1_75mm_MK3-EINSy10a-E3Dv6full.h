@@ -488,42 +488,42 @@
 
 #define TMC2130_SG_HOMING       1     // stallguard homing
 #ifndef X_AXIS_MOTOR_09 //Kuo
-  #define TMC2130_SG_THRS_X       3    // stallguard sensitivity for X axis
-  #define TMC2130_SG_THRS_X_HOME  3    // homing stallguard threshold for X axis
+  #define TMC2130_SG_THRS_X       3    // std stallguard sensitivity for X axis
+  #define TMC2130_SG_THRS_X_HOME  3    // std homing stallguard threshold for X axis
 #else
-  #define TMC2130_SG_THRS_X       4    // Kuo in case different needed for 0.9 degree motors
+  #define TMC2130_SG_THRS_X       4    // Kuo adjust here if different needed for 0.9 degree motors
   #define TMC2130_SG_THRS_X_HOME  4
 #endif
 
 #ifndef Y_AXIS_MOTOR_09 //Kuo
-  #define TMC2130_SG_THRS_Y       3    // stallguard sensitivity for Y axis
-  #define TMC2130_SG_THRS_Y_HOME  3    // homing stallguard threshold for Y axis
+  #define TMC2130_SG_THRS_Y       3    // std stallguard sensitivity for Y axis
+  #define TMC2130_SG_THRS_Y_HOME  3    // std homing stallguard threshold for Y axis
 #else
-  #define TMC2130_SG_THRS_Y       4    // Kuo in case different needed for 0.9 degree motors
+  #define TMC2130_SG_THRS_Y       4    // Kuo adjust here if different needed for 0.9 degree motors
   #define TMC2130_SG_THRS_Y_HOME  4
 #endif
 
 #ifndef Z_AXIS_MOTOR_09 //Kuo
-  #define TMC2130_SG_THRS_Z       4     // stallguard sensitivity for Z axis
+  #define TMC2130_SG_THRS_Z       4    // std stallguard sensitivity for Z axis
 #else
-  #define TMC2130_SG_THRS_Z       4    // Kuo in case different needed for 0.9 degree motors
+  #define TMC2130_SG_THRS_Z       4    // Kuo adjust here if different needed for 0.9 degree motors
 #endif
 
 #ifndef E_AXIS_MOTOR_09 //Kuo
-  #define TMC2130_SG_THRS_E       3    // stallguard sensitivity for E axis
+  #define TMC2130_SG_THRS_E       3    // std stallguard sensitivity for E axis
 #else
-  #define TMC2130_SG_THRS_E       3    // Kuo in case different needed for 0.9 degree motors
+  #define TMC2130_SG_THRS_E       3    // Kuo adjust here if different needed for 0.9 degree motors
 #endif //Kuo ===
 
 
 //new settings is possible for vsense = 1, running current value > 31 set vsense to zero and shift both currents by 1 bit right (Z axis only)
 #define TMC2130_CURRENTS_H {16, 20, 35, 30}  // default holding currents for all axes
 #define TMC2130_CURRENTS_R {16, 20, 35, 30}  // default running currents for all axes
-#define TMC2130_UNLOAD_CURRENT_R 12			 // lowe current for M600 to protect filament sensor 
+#define TMC2130_UNLOAD_CURRENT_R 12			 // lower current for M600 to protect filament sensor 
 
 #define TMC2130_STEALTH_Z
 
-//#define TMC2130_SERVICE_CODES_M910_M918
+//#define TMC2130_SERVICE_CODES_M910_M918 //Kuo uncomment to use diagnostic TMC2130 codes
 
 //#define TMC2130_DEBUG
 //#define TMC2130_DEBUG_WR
