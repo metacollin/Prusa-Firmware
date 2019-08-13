@@ -187,8 +187,9 @@
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
 
 //Kuo set the homing speeds (mm/min)
+//latest measurement suggest OMC at 2500 and Moons at 2250
 #ifdef X_AXIS_MOTOR_09
-  #define HOMING_FEEDRATE_X 2500  // Kuo slower feedrate needed for reliable X 0.9 degree motor stallGuard
+  #define HOMING_FEEDRATE_X 2250  // Kuo slower feedrate needed for reliable X 0.9 degree motor stallGuard
 #else
   #define HOMING_FEEDRATE_X 3000
 #endif
