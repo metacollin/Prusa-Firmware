@@ -1,25 +1,25 @@
-# Untested update to match Prusa 3.8.0
+# VFA fix summary, firmware compilation, and shopping list
+
+VFA's are a solved issue with 0.9 degree stepper motors. This post is a summary of what is needed to use 0.9 degree motors.
+
+# New branch based on Prusa 3.8.0 
 Includes 
 0.9 motor support
 Slice thermistor
 Linear Advance 1.5
 filament move changes for Slice magnum, BMG, skelestruder
 
-# MUST UPDATE RAMBO BOARD TO PRUSA RESEARCH VERSION!!!!!!
-As of 3.8.0, Prusa moved to new board definition. You can no longer compile for the Ultimachines board. New instructions for obtaining Prusa version added below.
+# MUST UPDATE RAMBO BOARD In ARDUINO IDE TO PRUSA RESEARCH VERSION!!!!!!
+As of 3.8.0, Prusa moved to new board definition. You can no longer compile for the Ultimachines board. New instructions for obtaining Prusa version are in compilation directions below.
 
-# VFA fix summary, firmware compilation, and shopping list
-
-VFA's are a solved issue with 0.9 degree stepper motors. This post is a summary of what is needed to use 0.9 degree motors.
 
 
 ## Firmware
-You will need this 0.9 degree motor firmware (now includes BMG extruder support)
+You will need this 0.9 degree motor firmware.
 
 Be able to compile this firmware before doing any hardware changes. Once motors have been changed, the first thing you need to do is update the firmware to this 0.9 motor support version.
 
-NEW-
-Extruder microstep rate has been reduced to avoid overrunning EINSY. E-steps are now 1/2 of what was needed for prior BNB firmware. Added Linear Advance 1.5 support, Slice Engineering thermistor table, and Skelestruder filament move distances to this branch.
+Extruder microstep rate has been reduced to avoid overrunning EINSY. E-steps are now 1/2 of what was needed for prior BNB firmware. 
 
 Set e-steps to new values via terminal window.
 -
@@ -28,17 +28,17 @@ PLEASE DO A FACTORY RESET WITH DATA ERASURE after installing this firmware. Fail
 
 ### Compiling my firmware for 0.9 degree motor support
 You may wish to refer to the Prusa README.md document for more detailed instructions regarding compilation of the firmware. 
-Warning: You are definitely in experimental firmware territory here.
+Warning: You are in experimental firmware territory here.
 
 #### Obtain Arduino IDE
 
 Visit https://www.arduino.cc/en/Main/Software and download the Arduino IDE for your OS. 
 I successfully use Arduino 1.8.9 for OSX. 
-Prusa instructions mention their internally using version 1.8.5
+Prusa instructions mention they internally using version 1.8.5
 Install Arduino compiler on your computer
 
 #### Prepare Arduino IDE to handle EINSY board
-As downloaded, the Arduino IDE does not know about the EINSY RAMBO board. You must adjust some IDE settings to download board info from Ultimachine.
+As downloaded, the Arduino IDE does not know about the EINSY RAMBO board. You must adjust some IDE settings to download board info from Prusa (no longer Ultimachines).
 
 1. Launch Arduino.
 
@@ -64,7 +64,7 @@ You many need to "update" the board to get the latest version. That is 1.0.1 as 
 
 8. QUIT Arduino IDE
 
-9. (Setting compiler flags step appears to be already done by Prusa)
+9. (Setting compiler flags step appears to be already done by Prusa. So this step may no longer be needed)
 Set compiler flags in platform.txt for newly installed RAMBo board
 Use your OS file search function to find platform.txt
 
@@ -115,12 +115,12 @@ Move Configuration_prusa.h to the main firmware folder.
 
 #### Set Language Support
 (This has already been done for you in my Prusa-Firmware-MK3-3.8.0-with-0.9-motors-LA15-Slice-Skelestruder-BMG branch)
-Set language support in config.h to primary language only. Otherwise, firmware will not run properly. Instead, your LCD will display random letters and likely boot loop.
+Language support in config.h must be primary language only. Otherwise, firmware will not run properly. Instead, your LCD will display random letters and likely boot loop.
 
 The changes needed are near bottom of the file. It should look like this...
 ```
 //LANG - Multi-language support
-#define LANG_MODE 0 // primary language only
+#define LANG_MODE 0 //Kuo primary language only
 //#define LANG_MODE 1 // sec. language support
 #define LANG_SIZE_RESERVED 0x2f00 // reserved space for secondary language (12032 bytes)
 ```
@@ -189,11 +189,6 @@ If you see a warning about a missing bootloader, you probably have an older, RAM
 
 Sketch -> Upload
 The firmware will compile and upload to printer. Do NOT interrupt the update!!!! Let it complete.
-
-You may also need to use Tools --> Port to select the correct USB port of your computer.
-
-
-
 
 
 ## Hardware
