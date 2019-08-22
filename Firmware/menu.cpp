@@ -1,503 +1,1644 @@
-//menu.cpp
+//! @file
 
-#include "menu.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <avr/pgmspace.h>
-#include "lcd.h"
-#include "Configuration.h"
-#include "Marlin.h"
-#include "ultralcd.h"
+#include "mmu.h"
+#include "planner.h"
 #include "language.h"
-#include "static_assert.h"
+#include "lcd.h"
+#include "uart2.h"
+#include "temperature.h"
+#include "Configuration_prusa.h"
+#include "fsensor.h"
+#include "cardreader.h"
+#include "ultralcd.h"
 #include "sound.h"
+#include "printers.h"
+#include <avr/pgmspace.h>
+#include "io_atmega2560.h"
+#include "AutoDeplete.h"
+//-//
+#include "util.h"
 
-extern int32_t lcd_encoder;
+#ifdef TMC2130
+#include "tmc2130.h"
+#endif //TMC2130
 
-#define MENU_DEPTH_MAX       6
+#define MMU_TODELAY 100
+#define MMU_TIMEOUT 10
+#define MMU_CMD_TIMEOUT 45000ul //45s timeout for mmu commands (except P0)
+#define MMU_P0_TIMEOUT 3000ul //timeout for P0 command: 3seconds
+#define MMU_MAX_RESEND_ATTEMPTS 2
 
-static menu_record_t menu_stack[MENU_DEPTH_MAX];
+#ifdef MMU_HWRESET
+#define MMU_RST_PIN 76
+#endif //MMU_HWRESET
 
-uint8_t menu_data[MENU_DATA_SIZE];
-#ifndef __AVR__
-#error "menu_data is non-portable to non 8bit processor"
-#endif
-
-uint8_t menu_depth = 0;
-uint8_t menu_block_entering_on_serious_errors = SERIOUS_ERR_NONE;
-uint8_t menu_line = 0;
-uint8_t menu_item = 0;
-uint8_t menu_row = 0;
-uint8_t menu_top = 0;
-
-uint8_t menu_clicked = 0;
-
-uint8_t menu_entering = 0;
-uint8_t menu_leaving = 0;
-
-menu_func_t menu_menu = 0;
-
-static_assert(sizeof(menu_data)>= sizeof(menu_data_edit_t),"menu_data_edit_t doesn't fit into menu_data");
-
-
-void menu_goto(menu_func_t menu, const uint32_t encoder, const bool feedback, bool reset_menu_state)
+namespace
 {
-	asm("cli");
-	if (menu_menu != menu)
-	{
-		menu_menu = menu;
-		lcd_encoder = encoder;
-		asm("sei");
-		if (reset_menu_state)
-		{
-			// Resets the global shared C union.
-			// This ensures, that the menu entered will find out, that it shall initialize itself.
-			memset(&menu_data, 0, sizeof(menu_data));
-		}
-		if (feedback) lcd_quick_feedback();
-	}
-	else
-		asm("sei");
-}
-
-void menu_start(void)
-{
-    if (lcd_encoder > 0x8000) lcd_encoder = 0;
-    if (lcd_encoder < 0)
+    enum class S : uint_least8_t
     {
-        lcd_encoder = 0;
-		Sound_MakeSound(e_SOUND_TYPE_BlindAlert);
-    }
-    if (lcd_encoder < menu_top)
-		menu_top = lcd_encoder;
-    menu_line = menu_top;
-    menu_clicked = LCD_CLICKED;
+        WaitStealthMode,
+        GetFindaInit,
+        GetBuildNr,
+        GetVersion,
+        Init,
+        Disabled,
+        Idle,
+        GetFinda,
+        WaitCmd, //!< wait for command response
+        Pause,
+        GetDrvError, //!< get power failures count
+		SwitchMode //switch mmu between stealth and normal mode 
+    };
 }
 
-void menu_end(void)
+bool mmu_enabled = false;
+bool mmu_ready = false;
+bool mmu_fil_loaded = false; //if true: blocks execution of duplicit T-codes
+
+static S mmu_state = S::Disabled;
+
+MmuCmd mmu_cmd = MmuCmd::None;
+
+//idler ir sensor
+static uint8_t mmu_idl_sens = 0;
+bool ir_sensor_detected = false; 
+static bool mmu_loading_flag = false; //when set to true, we assume that mmu2 unload was finished and loading phase is now performed; printer can send 'A' to mmu2 to abort loading process
+
+uint8_t mmu_extruder = MMU_FILAMENT_UNKNOWN;
+
+//! This variable probably has no meaning and is planed to be removed
+uint8_t tmp_extruder = MMU_FILAMENT_UNKNOWN;
+
+int8_t mmu_finda = -1;
+
+int16_t mmu_version = -1;
+
+int16_t mmu_buildnr = -1;
+
+uint32_t mmu_last_request = 0;
+uint32_t mmu_last_response = 0;
+
+MmuCmd mmu_last_cmd = MmuCmd::None;
+uint16_t mmu_power_failures = 0;
+
+
+#ifdef MMU_DEBUG
+static const auto DEBUG_PUTCHAR = putchar;
+static const auto DEBUG_PUTS_P = puts_P;
+static const auto DEBUG_PRINTF_P = printf_P;
+#else //MMU_DEBUG
+#define DEBUG_PUTCHAR(c)
+#define DEBUG_PUTS_P(str)
+#define DEBUG_PRINTF_P( __fmt, ... )
+#endif //MMU_DEBUG
+
+#if defined(MMU_FINDA_DEBUG) && defined(MMU_DEBUG)
+static const auto FDEBUG_PUTS_P = puts_P;
+static const auto FDEBUG_PRINTF_P = printf_P;
+#else
+#define FDEBUG_PUTS_P(str)
+#define FDEBUG_PRINTF_P( __fmt, ... )
+#endif //defined(MMU_FINDA_DEBUG) && defined(MMU_DEBUG)
+
+
+//clear rx buffer
+void mmu_clr_rx_buf(void)
 {
-	if (lcd_encoder >= menu_item)
-	{
-		lcd_encoder = menu_item - 1;
-		Sound_MakeSound(e_SOUND_TYPE_BlindAlert);
-	}
-	if (((uint8_t)lcd_encoder) >= menu_top + LCD_HEIGHT)
-	{
-		menu_top = lcd_encoder - LCD_HEIGHT + 1;
-		lcd_draw_update = 1;
-		menu_line = menu_top - 1;
-		menu_row = -1;
-	}
+	while (fgetc(uart2io) >= 0);
 }
 
-void menu_back(uint8_t nLevel)
+//send command - puts
+int mmu_puts_P(const char* str)
 {
-     menu_depth = ((menu_depth > nLevel) ? (menu_depth - nLevel) : 0);
-     menu_goto(menu_stack[menu_depth].menu, menu_stack[menu_depth].position, true, true);
+	mmu_clr_rx_buf();                          //clear rx buffer
+    int r = fputs_P(str, uart2io);             //send command
+	mmu_last_request = _millis();
+	return r;
 }
 
-void menu_back(void)
-{
-menu_back(1);
-}
-
-void menu_back_no_reset(void)
-{
-	if (menu_depth > 0)
-	{
-		menu_depth--;		
-		menu_goto(menu_stack[menu_depth].menu, menu_stack[menu_depth].position, true, false);
-	}
-}
-
-void menu_back_if_clicked(void)
-{
-	if (lcd_clicked())
-		menu_back();
-}
-
-void menu_back_if_clicked_fb(void)
-{
-	if (lcd_clicked())
-	{
-        lcd_quick_feedback();
-		menu_back();
-	}
-}
-
-void menu_submenu(menu_func_t submenu)
-{
-	if (menu_depth < MENU_DEPTH_MAX)
-	{
-		menu_stack[menu_depth].menu = menu_menu;
-		menu_stack[menu_depth++].position = lcd_encoder;
-		menu_goto(submenu, 0, true, true);
-	}
-}
-
-void menu_submenu_no_reset(menu_func_t submenu)
-{
-	if (menu_depth < MENU_DEPTH_MAX)
-	{
-		menu_stack[menu_depth].menu = menu_menu;
-		menu_stack[menu_depth++].position = lcd_encoder;
-		menu_goto(submenu, 0, true, false);
-	}
-}
-
-uint8_t menu_item_ret(void)
-{
-	lcd_beeper_quick_feedback();
-	lcd_draw_update = 2;
-	lcd_button_pressed = false;
-	return 1;
-}
-
-/*
-int menu_draw_item_printf_P(char type_char, const char* format, ...)
+//send command - printf
+int mmu_printf_P(const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	int ret = 0;
-    lcd_set_cursor(0, menu_row);
-	if (lcd_encoder == menu_item)
-		lcd_print('>');
-	else
-		lcd_print(' ');
-	int cnt = vfprintf_P(lcdout, format, args);
-	for (int i = cnt; i < 18; i++)
-		lcd_print(' ');
-	lcd_print(type_char);
+	mmu_clr_rx_buf();                          //clear rx buffer
+	int r = vfprintf_P(uart2io, format, args); //send command
 	va_end(args);
+	mmu_last_request = _millis();
+	return r;
+}
+
+//check 'ok' response
+int8_t mmu_rx_ok(void)
+{
+	int8_t res = uart2_rx_str_P(PSTR("ok\n"));
+	if (res == 1) mmu_last_response = _millis();
+	return res;
+}
+
+//check 'start' response
+int8_t mmu_rx_start(void)
+{
+	int8_t res = uart2_rx_str_P(PSTR("start\n"));
+	if (res == 1) mmu_last_response = _millis();
+	return res;
+}
+
+//initialize mmu2 unit - first part - should be done at begining of startup process
+void mmu_init(void)
+{
+#ifdef MMU_HWRESET
+	digitalWrite(MMU_RST_PIN, HIGH);
+	pinMode(MMU_RST_PIN, OUTPUT);              //setup reset pin
+#endif //MMU_HWRESET
+	uart2_init();                              //init uart2
+	_delay_ms(10);                             //wait 10ms for sure
+	mmu_reset();                               //reset mmu (HW or SW), do not wait for response
+	mmu_state = S::Init;
+	PIN_INP(IR_SENSOR_PIN); //input mode
+	PIN_SET(IR_SENSOR_PIN); //pullup
+}
+
+//if IR_SENSOR defined, always returns true
+//otherwise check for ir sensor and returns true if idler IR sensor was detected, otherwise returns false
+bool check_for_ir_sensor() 
+{
+#ifdef IR_SENSOR
+	return true;
+#else //IR_SENSOR
+
+	bool detected = false;
+	//if IR_SENSOR_PIN input is low and pat9125sensor is not present we detected idler sensor
+	if ((PIN_GET(IR_SENSOR_PIN) == 0) 
+#ifdef PAT9125
+		&& fsensor_not_responding
+#endif //PAT9125
+	) 
+	{		
+		detected = true;
+		//printf_P(PSTR("Idler IR sensor detected\n"));
+	}
+	else
+	{
+		//printf_P(PSTR("Idler IR sensor not detected\n"));
+	}
+	return detected;
+#endif //IR_SENSOR
+}
+
+static bool activate_stealth_mode()
+{
+#ifdef MMU_FORCE_STEALTH_MODE
+	return true;
+#else
+	return (eeprom_read_byte((uint8_t*)EEPROM_MMU_STEALTH) == 1);
+#endif
+}
+
+//mmu main loop - state machine processing
+void mmu_loop(void)
+{
+	static uint8_t mmu_attempt_nr = 0;
+//	printf_P(PSTR("MMU loop, state=%d\n"), mmu_state);
+	switch (mmu_state)
+	{
+	case S::Disabled:
+		return;
+	case S::Init:
+		if (mmu_rx_start() > 0)
+		{
+		    DEBUG_PUTS_P(PSTR("MMU => 'start'"));
+		    DEBUG_PUTS_P(PSTR("MMU <= 'S1'"));
+		    mmu_puts_P(PSTR("S1\n")); //send 'read version' request
+			mmu_state = S::GetVersion;
+		}
+		else if (_millis() > 30000) //30sec after reset disable mmu
+		{
+			puts_P(PSTR("MMU not responding - DISABLED"));
+			mmu_state = S::Disabled;
+		}
+		return;
+	case S::GetVersion:
+		if (mmu_rx_ok() > 0)
+		{
+			fscanf_P(uart2io, PSTR("%u"), &mmu_version); //scan version from buffer
+			DEBUG_PRINTF_P(PSTR("MMU => '%dok'\n"), mmu_version);
+			DEBUG_PUTS_P(PSTR("MMU <= 'S2'"));
+			mmu_puts_P(PSTR("S2\n")); //send 'read buildnr' request
+			mmu_state = S::GetBuildNr;
+		}
+		return;
+	case S::GetBuildNr:
+		if (mmu_rx_ok() > 0)
+		{
+			fscanf_P(uart2io, PSTR("%u"), &mmu_buildnr); //scan buildnr from buffer
+			DEBUG_PRINTF_P(PSTR("MMU => '%dok'\n"), mmu_buildnr);
+			bool version_valid = mmu_check_version();
+			if (!version_valid) mmu_show_warning();
+			else puts_P(PSTR("MMU version valid"));
+			
+			if (!activate_stealth_mode())
+			{
+				FDEBUG_PUTS_P(PSTR("MMU <= 'P0'"));
+				mmu_puts_P(PSTR("P0\n")); //send 'read finda' request
+				mmu_state = S::GetFindaInit;
+			}
+			else
+			{
+				DEBUG_PUTS_P(PSTR("MMU <= 'M1'"));
+				mmu_puts_P(PSTR("M1\n")); //set mmu mode to stealth
+				mmu_state = S::WaitStealthMode;
+			}
+
+		}
+		return;
+	case S::WaitStealthMode:
+		if (mmu_rx_ok() > 0)
+		{
+			FDEBUG_PUTS_P(PSTR("MMU <= 'P0'"));
+		    mmu_puts_P(PSTR("P0\n")); //send 'read finda' request
+			mmu_state = S::GetFindaInit;
+		}
+		return;
+	case S::GetFindaInit:
+		if (mmu_rx_ok() > 0)
+		{
+			fscanf_P(uart2io, PSTR("%hhu"), &mmu_finda); //scan finda from buffer
+			FDEBUG_PRINTF_P(PSTR("MMU => '%dok'\n"), mmu_finda);
+			puts_P(PSTR("MMU - ENABLED"));
+			mmu_enabled = true;
+            //-//
+            // ... PrinterType/Name
+            fSetMmuMode(true);
+			mmu_state = S::Idle;
+		}
+		return;
+	case S::Idle:
+		if (mmu_cmd != MmuCmd::None) //command request ?
+		{
+			if ((mmu_cmd >= MmuCmd::T0) && (mmu_cmd <= MmuCmd::T4))
+			{
+				const uint8_t filament = mmu_cmd - MmuCmd::T0;
+				DEBUG_PRINTF_P(PSTR("MMU <= 'T%d'\n"), filament);
+				mmu_printf_P(PSTR("T%d\n"), filament);
+				mmu_state = S::WaitCmd; // wait for response
+				mmu_fil_loaded = true;
+				mmu_idl_sens = 1;
+			}
+			else if ((mmu_cmd >= MmuCmd::L0) && (mmu_cmd <= MmuCmd::L4))
+			{
+			    const uint8_t filament = mmu_cmd - MmuCmd::L0;
+			    DEBUG_PRINTF_P(PSTR("MMU <= 'L%d'\n"), filament);
+			    mmu_printf_P(PSTR("L%d\n"), filament);
+			    mmu_state = S::WaitCmd; // wait for response
+			}
+			else if (mmu_cmd == MmuCmd::C0)
+			{
+			    DEBUG_PRINTF_P(PSTR("MMU <= 'C0'\n"));
+				mmu_puts_P(PSTR("C0\n")); //send 'continue loading'
+				mmu_state = S::WaitCmd;
+				mmu_idl_sens = 1;
+			}
+			else if (mmu_cmd == MmuCmd::U0)
+			{
+			    DEBUG_PRINTF_P(PSTR("MMU <= 'U0'\n"));
+				mmu_puts_P(PSTR("U0\n")); //send 'unload current filament'
+				mmu_fil_loaded = false;
+				mmu_state = S::WaitCmd;
+			}
+			else if ((mmu_cmd >= MmuCmd::E0) && (mmu_cmd <= MmuCmd::E4))
+			{
+			    const uint8_t filament = mmu_cmd - MmuCmd::E0;
+				DEBUG_PRINTF_P(PSTR("MMU <= 'E%d'\n"), filament);
+				mmu_printf_P(PSTR("E%d\n"), filament); //send eject filament
+				mmu_fil_loaded = false;
+				mmu_state = S::WaitCmd;
+			}
+			else if ((mmu_cmd >= MmuCmd::K0) && (mmu_cmd <= MmuCmd::K4))
+            {
+                const uint8_t filament = mmu_cmd - MmuCmd::K0;
+                DEBUG_PRINTF_P(PSTR("MMU <= 'K%d'\n"), filament);
+                mmu_printf_P(PSTR("K%d\n"), filament); //send eject filament
+                mmu_fil_loaded = false;
+                mmu_state = S::WaitCmd;
+            }
+			else if (mmu_cmd == MmuCmd::R0)
+			{
+			    DEBUG_PRINTF_P(PSTR("MMU <= 'R0'\n"));
+				mmu_puts_P(PSTR("R0\n")); //send recover after eject
+				mmu_state = S::WaitCmd;
+			}
+			else if (mmu_cmd == MmuCmd::S3)
+			{
+			    DEBUG_PRINTF_P(PSTR("MMU <= 'S3'\n"));
+				mmu_puts_P(PSTR("S3\n")); //send power failures request
+				mmu_state = S::GetDrvError;
+			}
+			else if (mmu_cmd == MmuCmd::W0)
+			{
+			    DEBUG_PRINTF_P(PSTR("MMU <= 'W0'\n"));
+			    mmu_puts_P(PSTR("W0\n"));
+			    mmu_state = S::Pause;
+			}
+			mmu_last_cmd = mmu_cmd;
+			mmu_cmd = MmuCmd::None;
+		}
+		else if ((eeprom_read_byte((uint8_t*)EEPROM_MMU_STEALTH) != SilentModeMenu_MMU) && mmu_ready) {
+				DEBUG_PRINTF_P(PSTR("MMU <= 'M%d'\n"), SilentModeMenu_MMU);
+				mmu_printf_P(PSTR("M%d\n"), SilentModeMenu_MMU);
+				mmu_state = S::SwitchMode;
+		}
+		else if ((mmu_last_response + 300) < _millis()) //request every 300ms
+		{
+#ifndef IR_SENSOR
+			if(check_for_ir_sensor()) ir_sensor_detected = true;
+#endif //IR_SENSOR not defined
+			FDEBUG_PUTS_P(PSTR("MMU <= 'P0'"));
+		    mmu_puts_P(PSTR("P0\n")); //send 'read finda' request
+			mmu_state = S::GetFinda;
+		}
+		return;
+	case S::GetFinda: //response to command P0
+        if (mmu_idl_sens)
+        {
+            if (PIN_GET(IR_SENSOR_PIN) == 0 && mmu_loading_flag)
+            {
+#ifdef MMU_DEBUG
+                printf_P(PSTR("MMU <= 'A'\n"));
+#endif //MMU_DEBUG  
+                mmu_puts_P(PSTR("A\n")); //send 'abort' request
+                mmu_idl_sens = 0;
+                //printf_P(PSTR("MMU IDLER_SENSOR = 0 - ABORT\n"));
+            }
+            //else
+                //printf_P(PSTR("MMU IDLER_SENSOR = 1 - WAIT\n"));
+        }
+		if (mmu_rx_ok() > 0)
+		{
+			fscanf_P(uart2io, PSTR("%hhu"), &mmu_finda); //scan finda from buffer
+			FDEBUG_PRINTF_P(PSTR("MMU => '%dok'\n"), mmu_finda);
+			//printf_P(PSTR("Eact: %d\n"), int(e_active()));
+			if (!mmu_finda && CHECK_FSENSOR && fsensor_enabled) {
+				fsensor_stop_and_save_print();
+				enquecommand_front_P(PSTR("PRUSA fsensor_recover")); //then recover
+				ad_markDepleted(mmu_extruder);
+				if (lcd_autoDepleteEnabled() && !ad_allDepleted())
+				{
+				    enquecommand_front_P(PSTR("M600 AUTO")); //save print and run M600 command
+				}
+				else
+				{
+				    enquecommand_front_P(PSTR("M600")); //save print and run M600 command
+				}
+			}
+			mmu_state = S::Idle;
+			if (mmu_cmd == MmuCmd::None)
+				mmu_ready = true;
+		}
+		else if ((mmu_last_request + MMU_P0_TIMEOUT) < _millis())
+		{ //resend request after timeout (30s)
+			mmu_state = S::Idle;
+		}
+		return;
+	case S::WaitCmd: //response to mmu commands
+        if (mmu_idl_sens)
+        {
+            if (PIN_GET(IR_SENSOR_PIN) == 0 && mmu_loading_flag)
+            {
+                DEBUG_PRINTF_P(PSTR("MMU <= 'A'\n"));
+                mmu_puts_P(PSTR("A\n")); //send 'abort' request
+                mmu_idl_sens = 0;
+                //printf_P(PSTR("MMU IDLER_SENSOR = 0 - ABORT\n"));
+            }
+            //else
+                //printf_P(PSTR("MMU IDLER_SENSOR = 1 - WAIT\n"));
+        }
+		if (mmu_rx_ok() > 0)
+		{
+		    DEBUG_PRINTF_P(PSTR("MMU => 'ok'\n"));
+			mmu_attempt_nr = 0;
+			mmu_last_cmd = MmuCmd::None;
+			mmu_ready = true;
+			mmu_state = S::Idle;
+		}
+		else if ((mmu_last_request + MMU_CMD_TIMEOUT) < _millis())
+		{ //resend request after timeout (5 min)
+			if (mmu_last_cmd != MmuCmd::None)
+			{
+				if (mmu_attempt_nr++ < MMU_MAX_RESEND_ATTEMPTS &&
+				    mmu_last_cmd >= MmuCmd::T0 && mmu_last_cmd <= MmuCmd::T4)
+				{
+				    DEBUG_PRINTF_P(PSTR("MMU retry attempt nr. %d\n"), mmu_attempt_nr - 1);
+					mmu_cmd = mmu_last_cmd;
+				}
+				else {
+					mmu_cmd = MmuCmd::None;
+					mmu_last_cmd = MmuCmd::None; //check
+					mmu_attempt_nr = 0;
+				}
+			}
+			mmu_state = S::Idle;
+		}
+		return;
+	case S::Pause:
+        if (mmu_rx_ok() > 0)
+        {
+            DEBUG_PRINTF_P(PSTR("MMU => 'ok', resume print\n"));
+            mmu_attempt_nr = 0;
+            mmu_last_cmd = MmuCmd::None;
+            mmu_ready = true;
+            mmu_state = S::Idle;
+            lcd_resume_print();
+        }
+        if (mmu_cmd != MmuCmd::None)
+        {
+            mmu_state = S::Idle;
+        }
+	    return;
+	case S::GetDrvError:
+		if (mmu_rx_ok() > 0)
+		{
+			fscanf_P(uart2io, PSTR("%d"), &mmu_power_failures); //scan power failures
+			DEBUG_PRINTF_P(PSTR("MMU => 'ok'\n"));
+			mmu_last_cmd = MmuCmd::None;
+			mmu_ready = true;
+			mmu_state = S::Idle;
+		}
+		else if ((mmu_last_request + MMU_CMD_TIMEOUT) < _millis())
+		{ //timeout 45 s
+			mmu_state = S::Idle;
+		}
+		return;
+	case S::SwitchMode:
+		if (mmu_rx_ok() > 0)
+		{
+			DEBUG_PRINTF_P(PSTR("MMU => 'ok'\n"));
+			eeprom_update_byte((uint8_t*)EEPROM_MMU_STEALTH, SilentModeMenu_MMU);
+			mmu_state = S::Idle;
+		}
+		else if ((mmu_last_request + MMU_CMD_TIMEOUT) < _millis())
+		{ //timeout 45 s
+			mmu_state = S::Idle;
+		}
+		return;		
+	}
+}
+
+void mmu_reset(void)
+{
+#ifdef MMU_HWRESET                             //HW - pulse reset pin
+	digitalWrite(MMU_RST_PIN, LOW);
+	_delay_us(100);
+	digitalWrite(MMU_RST_PIN, HIGH);
+#else                                          //SW - send X0 command
+    mmu_puts_P(PSTR("X0\n"));
+#endif
+}
+
+int8_t mmu_set_filament_type(uint8_t extruder, uint8_t filament)
+{
+	printf_P(PSTR("MMU <= 'F%d %d'\n"), extruder, filament);
+	mmu_printf_P(PSTR("F%d %d\n"), extruder, filament);
+	unsigned char timeout = MMU_TIMEOUT;       //10x100ms
+	while ((mmu_rx_ok() <= 0) && (--timeout))
+		delay_keep_alive(MMU_TODELAY);
+	return timeout?1:0;
+}
+
+//! @brief Enqueue MMUv2 command
+//!
+//! Call manage_response() after enqueuing to process command.
+//! If T command is enqueued, it disables current for extruder motor if TMC2130 driver present.
+//! If T or L command is enqueued, it marks filament loaded in AutoDeplete module.
+void mmu_command(MmuCmd cmd)
+{
+	if ((cmd >= MmuCmd::T0) && (cmd <= MmuCmd::T4))
+	{
+		//disable extruder motor
+#ifdef TMC2130
+		tmc2130_set_pwr(E_AXIS, 0);
+#endif //TMC2130
+		//printf_P(PSTR("E-axis disabled\n"));
+		ad_markLoaded(cmd - MmuCmd::T0);
+	}
+    if ((cmd >= MmuCmd::L0) && (cmd <= MmuCmd::L4))
+    {
+        ad_markLoaded(cmd - MmuCmd::L0);
+    }
+
+	mmu_cmd = cmd;
+	mmu_ready = false;
+}
+
+//! @brief Rotate extruder idler to catch filament
+//! @par synchronize
+//!  * true blocking call
+//!  * false non-blocking call
+void mmu_load_step(bool synchronize)
+{
+		current_position[E_AXIS] = current_position[E_AXIS] + MMU_LOAD_FEEDRATE * 0.1;
+		plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
+		if (synchronize) st_synchronize();
+}
+
+//! @brief Is nozzle hot enough to move extruder wheels and do we have idler sensor?
+//!
+//! Do load steps only if temperature is higher then min. temp for safe extrusion and
+//! idler sensor present.
+//! Otherwise "cold extrusion prevented" would be send to serial line periodically
+//! and watchdog reset will be triggered by lack of keep_alive processing.
+//!
+//! @retval true temperature is high enough to move extruder
+//! @retval false temperature is not high enough to move extruder, turned
+//!         off E-stepper to prevent over-heating and allow filament pull-out if necessary
+bool can_extrude()
+{
+    if ((degHotend(active_extruder) < EXTRUDE_MINTEMP) || !ir_sensor_detected)
+    {
+        disable_e0();
+        delay_keep_alive(100);
+        return false;
+    }
+    return true;
+}
+
+static void get_response_print_info(uint8_t move) {
+	printf_P(PSTR("mmu_get_response - begin move: "), move);
+	switch (move) {
+		case MMU_LOAD_MOVE: printf_P(PSTR("load\n")); break;
+		case MMU_UNLOAD_MOVE: printf_P(PSTR("unload\n")); break;
+		case MMU_TCODE_MOVE: printf_P(PSTR("T-code\n")); break;
+		case MMU_NO_MOVE: printf_P(PSTR("no move\n")); break;
+		default: printf_P(PSTR("error: unknown move\n")); break;
+	}
+}
+
+bool mmu_get_response(uint8_t move)
+{
+
+	get_response_print_info(move);
+	KEEPALIVE_STATE(IN_PROCESS);
+	while (mmu_cmd != MmuCmd::None)
+	{
+		delay_keep_alive(100);
+	}
+
+	while (!mmu_ready)
+	{
+		if ((mmu_state != S::WaitCmd) && (mmu_last_cmd == MmuCmd::None))
+			break;
+
+		switch (move) {
+			case MMU_LOAD_MOVE:
+			    mmu_loading_flag = true;
+				if (can_extrude()) mmu_load_step();
+				//don't rely on "ok" signal from mmu unit; if filament detected by idler sensor during loading stop loading movements to prevent infinite loading
+				if (PIN_GET(IR_SENSOR_PIN) == 0) move = MMU_NO_MOVE;
+				break;
+			case MMU_UNLOAD_MOVE:
+				if (PIN_GET(IR_SENSOR_PIN) == 0) //filament is still detected by idler sensor, printer helps with unlading 
+				{
+				    if (can_extrude())
+				    {
+                        printf_P(PSTR("Unload 1\n"));
+                        current_position[E_AXIS] = current_position[E_AXIS] - MMU_LOAD_FEEDRATE * MMU_LOAD_TIME_MS*0.001;
+                        plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
+                        st_synchronize();
+				    }
+				}
+				else //filament was unloaded from idler, no additional movements needed 
+				{ 
+					printf_P(PSTR("Unloading finished 1\n"));
+					disable_e0(); //turn off E-stepper to prevent overheating and alow filament pull-out if necessary
+					move = MMU_NO_MOVE;
+				}
+				break;
+			case MMU_TCODE_MOVE: //first do unload and then continue with infinite loading movements
+				if (PIN_GET(IR_SENSOR_PIN) == 0) //filament detected by idler sensor, we must unload first 
+				{
+                    if (can_extrude())
+                    {
+                        printf_P(PSTR("Unload 2\n"));
+                        current_position[E_AXIS] = current_position[E_AXIS] - MMU_LOAD_FEEDRATE * MMU_LOAD_TIME_MS*0.001;
+                        plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
+                        st_synchronize();
+                    }
+				}
+				else //delay to allow mmu unit to pull out filament from bondtech gears and then start with infinite loading 
+				{ 
+					printf_P(PSTR("Unloading finished 2\n"));
+					disable_e0(); //turn off E-stepper to prevent overheating and alow filament pull-out if necessary
+					delay_keep_alive(MMU_LOAD_TIME_MS);
+					move = MMU_LOAD_MOVE;
+					get_response_print_info(move);
+				}
+				break;
+			case MMU_NO_MOVE:
+			default: 
+				delay_keep_alive(100);
+				break;
+		}
+	}
+	printf_P(PSTR("mmu_get_response() returning: %d\n"), mmu_ready);
+	bool ret = mmu_ready;
+	mmu_ready = false;
+//	printf_P(PSTR("mmu_get_response - end %d\n"), ret?1:0);
 	return ret;
 }
-*/
 
-static char menu_selection_mark(){
-	return (lcd_encoder == menu_item)?'>':' ';
-}
-
-static void menu_draw_item_puts_P(char type_char, const char* str)
-{
-    lcd_set_cursor(0, menu_row);
-    lcd_printf_P(PSTR("%c%-18.18S%c"), menu_selection_mark(), str, type_char);
-}
-
-//! @brief Format sheet name
+//! @brief Wait for active extruder to reach temperature set
 //!
-//! @param[in] sheet_E Sheet in EEPROM
-//! @param[out] buffer for formatted output
-void menu_format_sheet_E(const Sheet &sheet_E, SheetFormatBuffer &buffer)
+//! This function is blocking and showing lcd_wait_for_heater() screen
+//! which is constantly updated with nozzle temperature.
+void mmu_wait_for_heater_blocking()
 {
-    uint_least8_t index = sprintf_P(buffer.c, PSTR("%.10S "), _T(MSG_SHEET));
-    eeprom_read_block(&(buffer.c[index]), sheet_E.name, 7);
-    //index += 7;
-    buffer.c[index + 7] = '\0';
+    while ((degTargetHotend(active_extruder) - degHotend(active_extruder)) > 5)
+    {
+        delay_keep_alive(1000);
+        lcd_wait_for_heater();
+    }
 }
 
-//! @brief Format sheet name in select menu
+void manage_response(bool move_axes, bool turn_off_nozzle, uint8_t move)
+{
+	bool response = false;
+	mmu_print_saved = false;
+	bool lcd_update_was_enabled = false;
+	float hotend_temp_bckp = degTargetHotend(active_extruder);
+	float z_position_bckp = current_position[Z_AXIS];
+	float x_position_bckp = current_position[X_AXIS];
+	float y_position_bckp = current_position[Y_AXIS];	
+	uint8_t screen = 0; //used for showing multiscreen messages
+	mmu_loading_flag = false;
+	while(!response)
+	{
+		  response = mmu_get_response(move); //wait for "ok" from mmu
+		  if (!response) { //no "ok" was received in reserved time frame, user will fix the issue on mmu unit
+			  if (!mmu_print_saved) { //first occurence, we are saving current position, park print head in certain position and disable nozzle heater
+				  
+				  uint8_t mmu_fail = eeprom_read_byte((uint8_t*)EEPROM_MMU_FAIL);
+				  uint16_t mmu_fail_tot = eeprom_read_word((uint16_t*)EEPROM_MMU_FAIL_TOT);
+				  if(mmu_fail < 255) eeprom_update_byte((uint8_t*)EEPROM_MMU_FAIL, mmu_fail + 1);
+				  if(mmu_fail_tot < 65535) eeprom_update_word((uint16_t*)EEPROM_MMU_FAIL_TOT, mmu_fail_tot + 1);
+
+				  if (lcd_update_enabled) {
+					  lcd_update_was_enabled = true;
+					  lcd_update_enable(false);
+				  }
+				  st_synchronize();
+				  mmu_print_saved = true;
+				  printf_P(PSTR("MMU not responding\n"));
+				  KEEPALIVE_STATE(PAUSED_FOR_USER);
+				  hotend_temp_bckp = degTargetHotend(active_extruder);
+				  if (move_axes) {
+					  z_position_bckp = current_position[Z_AXIS];
+					  x_position_bckp = current_position[X_AXIS];
+					  y_position_bckp = current_position[Y_AXIS];
+				  
+					  //lift z
+					  current_position[Z_AXIS] += Z_PAUSE_LIFT;
+					  if (current_position[Z_AXIS] > Z_MAX_POS) current_position[Z_AXIS] = Z_MAX_POS;
+					  plan_buffer_line_curposXYZE(15, active_extruder);
+					  st_synchronize();
+					  					  
+					  //Move XY to side
+					  current_position[X_AXIS] = X_PAUSE_POS;
+					  current_position[Y_AXIS] = Y_PAUSE_POS;
+					  plan_buffer_line_curposXYZE(50, active_extruder);
+					  st_synchronize();
+				  }
+				  if (turn_off_nozzle) {
+					  //set nozzle target temperature to 0
+					  setAllTargetHotends(0);
+				  }
+				  disable_e0(); //turn off E-stepper to prevent overheating and alow filament pull-out if necessary
+			  }
+
+			  //first three lines are used for printing multiscreen message; last line contains measured and target nozzle temperature
+			  if (screen == 0) { //screen 0
+				  lcd_display_message_fullscreen_P(_i("MMU needs user attention."));
+				  screen++;
+			  }
+			  else {  //screen 1
+				  if((degTargetHotend(active_extruder) == 0) && turn_off_nozzle) lcd_display_message_fullscreen_P(_i("Press the knob to resume nozzle temperature."));
+				  else lcd_display_message_fullscreen_P(_i("Fix the issue and then press button on MMU unit."));
+				  screen=0;
+			  }
+
+			  lcd_set_degree();
+
+
+			  //5 seconds delay
+			  for (uint8_t i = 0; i < 5; i++) {
+				  if (lcd_clicked()) {
+					  setTargetHotend(hotend_temp_bckp, active_extruder);
+					 /// mmu_cmd = mmu_last_cmd;
+					  break;
+				  }		  
+
+				  //Print the hotend temperature (9 chars total) and fill rest of the line with space
+				  lcd_set_cursor(0, 4); //line 4
+				  int chars = lcd_printf_P(_N("%c%3d/%d%c"), LCD_STR_THERMOMETER[0],(int)(degHotend(active_extruder) + 0.5), (int)(degTargetHotend(active_extruder) + 0.5), LCD_STR_DEGREE[0]);
+				  lcd_space(9 - chars);
+				  delay_keep_alive(1000);
+			  }
+		  }
+		  else if (mmu_print_saved) {
+			  printf_P(PSTR("MMU starts responding\n"));
+			  KEEPALIVE_STATE(IN_HANDLER);
+			  mmu_loading_flag = false;
+			  if (turn_off_nozzle) 
+			  {
+				lcd_clear();
+				setTargetHotend(hotend_temp_bckp, active_extruder);
+				if (((degTargetHotend(active_extruder) - degHotend(active_extruder)) > 5)) {
+					lcd_display_message_fullscreen_P(_i("MMU OK. Resuming temperature..."));
+					delay_keep_alive(3000);
+				}
+                mmu_wait_for_heater_blocking();
+			  }			  
+			  if (move_axes) {
+				  lcd_clear();
+				  lcd_display_message_fullscreen_P(_i("MMU OK. Resuming position..."));
+				  current_position[X_AXIS] = x_position_bckp;
+				  current_position[Y_AXIS] = y_position_bckp;
+				  plan_buffer_line_curposXYZE(50, active_extruder);
+				  st_synchronize();
+				  current_position[Z_AXIS] = z_position_bckp;
+				  plan_buffer_line_curposXYZE(15, active_extruder);
+				  st_synchronize();
+			  }
+			  else {
+				  lcd_clear();
+				  lcd_display_message_fullscreen_P(_i("MMU OK. Resuming..."));
+				  delay_keep_alive(1000); //delay just for showing MMU OK message for a while in case that there are no xyz movements
+			  }
+		  }
+	}
+	if (lcd_update_was_enabled) lcd_update_enable(true);
+#ifdef TMC2130
+			//enable extruder motor (disabled in mmu_command, start of T-code processing)
+			tmc2130_set_pwr(E_AXIS, 1);
+			//printf_P(PSTR("E-axis enabled\n"));
+#endif //TMC2130
+}
+
+//! @brief load filament to nozzle of multimaterial printer
 //!
-//! @param[in] sheet_E Sheet in EEPROM
-//! @param[out] buffer for formatted output
-void menu_format_sheet_select_E(const Sheet &sheet_E, SheetFormatBuffer &buffer)
-{
-    uint_least8_t index = sprintf_P(buffer.c,PSTR("%-9.9S["), _T(MSG_SHEET));
-    eeprom_read_block(&(buffer.c[index]), sheet_E.name, 7);
-	buffer.c[index + 7] = ']';
-    buffer.c[index + 8] = '\0';
-}
-
-static void menu_draw_item_select_sheet_E(char type_char, const Sheet &sheet)
-{
-    lcd_set_cursor(0, menu_row);
-    SheetFormatBuffer buffer;
-    menu_format_sheet_select_E(sheet, buffer);
-    lcd_printf_P(PSTR("%c%-18.18s%c"), menu_selection_mark(), buffer.c, type_char);
-}
-
-
-static void menu_draw_item_puts_E(char type_char, const Sheet &sheet)
-{
-    lcd_set_cursor(0, menu_row);
-    SheetFormatBuffer buffer;
-    menu_format_sheet_E(sheet, buffer);
-    lcd_printf_P(PSTR("%c%-18.18s%c"), menu_selection_mark(), buffer.c, type_char);
-}
-
-static void menu_draw_item_puts_P(char type_char, const char* str, char num)
-{
-    lcd_set_cursor(0, menu_row);
-    lcd_printf_P(PSTR("%c%-.16S "), menu_selection_mark(), str);
-    lcd_putc(num);
-    lcd_set_cursor(19, menu_row);
-    lcd_putc(type_char);
-}
-
-/*
-int menu_draw_item_puts_P_int16(char type_char, const char* str, int16_t val, )
-{
-    lcd_set_cursor(0, menu_row);
-	int cnt = lcd_printf_P(PSTR("%c%-18S%c"), (lcd_encoder == menu_item)?'>':' ', str, type_char);
-	return cnt;
-}
-*/
-
-void menu_item_dummy(void)
-{
-	menu_item++;
-}
-
-uint8_t menu_item_text_P(const char* str)
-{
-	if (menu_item == menu_line)
-	{
-		if (lcd_draw_update) menu_draw_item_puts_P(' ', str);
-		if (menu_clicked && (lcd_encoder == menu_item))
-			return menu_item_ret();
-	}
-	menu_item++;
-	return 0;
-}
-
-uint8_t menu_item_submenu_P(const char* str, menu_func_t submenu)
-{
-	if (menu_item == menu_line)
-	{
-		if (lcd_draw_update) menu_draw_item_puts_P(LCD_STR_ARROW_RIGHT[0], str);
-		if (menu_clicked && (lcd_encoder == menu_item))
-		{
-			menu_submenu(submenu);
-			return menu_item_ret();
-		}
-	}
-	menu_item++;
-	return 0;
-}
-
-uint8_t menu_item_submenu_E(const Sheet &sheet, menu_func_t submenu)
-{
-    if (menu_item == menu_line)
-    {
-        if (lcd_draw_update) menu_draw_item_puts_E(LCD_STR_ARROW_RIGHT[0], sheet);
-        if (menu_clicked && (lcd_encoder == menu_item))
-        {
-            menu_submenu(submenu);
-            return menu_item_ret();
-        }
-    }
-    menu_item++;
-    return 0;
-}
-
-uint8_t menu_item_submenu_select_sheet_E(const Sheet &sheet, menu_func_t submenu)
-{
-    if (menu_item == menu_line)
-    {
-        if (lcd_draw_update) menu_draw_item_select_sheet_E(LCD_STR_ARROW_RIGHT[0], sheet);
-        if (menu_clicked && (lcd_encoder == menu_item))
-        {
-            menu_submenu(submenu);
-            return menu_item_ret();
-        }
-    }
-    menu_item++;
-    return 0;
-}
-
-uint8_t menu_item_back_P(const char* str)
-{
-	if (menu_item == menu_line)
-	{
-		if (lcd_draw_update) menu_draw_item_puts_P(LCD_STR_UPLEVEL[0], str);
-		if (menu_clicked && (lcd_encoder == menu_item))
-		{
-			menu_back();
-			return menu_item_ret();
-		}
-	}
-	menu_item++;
-	return 0;
-}
-
-uint8_t menu_item_function_P(const char* str, menu_func_t func)
-{
-	if (menu_item == menu_line)
-	{
-		if (lcd_draw_update) menu_draw_item_puts_P(' ', str);
-		if (menu_clicked && (lcd_encoder == menu_item))
-		{
-			menu_clicked = false;
-			lcd_consume_click();
-			lcd_update_enabled = 0;
-			if (func) func();
-			lcd_update_enabled = 1;
-			return menu_item_ret();
-		}
-	}
-	menu_item++;
-	return 0;
-}
-
-//! @brief Menu item function taking single parameter
+//! This function is used only only after T? (user select filament) and M600 (change filament).
+//! It is not used after T0 .. T4 command (select filament), in such case, gcode is responsible for loading
+//! filament to nozzle.
 //!
-//! Ideal for numbered lists calling functions with number parameter.
-//! @param str Item caption
-//! @param number aditional character to be added after str, e.g. number
-//! @param func pointer to function taking uint8_t with no return value
-//! @param fn_par value to be passed to function
-//! @retval 0
-//! @retval 1 Item was clicked
-uint8_t menu_item_function_P(const char* str, char number, void (*func)(uint8_t), uint8_t fn_par)
+void mmu_load_to_nozzle()
 {
-    if (menu_item == menu_line)
-    {
-        if (lcd_draw_update) menu_draw_item_puts_P(' ', str, number);
-        if (menu_clicked && (lcd_encoder == menu_item))
-        {
-            menu_clicked = false;
-            lcd_consume_click();
-            lcd_update_enabled = 0;
-            if (func) func(fn_par);
-            lcd_update_enabled = 1;
-            return menu_item_ret();
-        }
-    }
-    menu_item++;
-    return 0;
-}
-
-uint8_t menu_item_gcode_P(const char* str, const char* str_gcode)
-{
-	if (menu_item == menu_line)
+	st_synchronize();
+	
+	bool saved_e_relative_mode = axis_relative_modes[E_AXIS];
+	if (!saved_e_relative_mode) axis_relative_modes[E_AXIS] = true;
+	if (ir_sensor_detected)
 	{
-		if (lcd_draw_update) menu_draw_item_puts_P(' ', str);
-		if (menu_clicked && (lcd_encoder == menu_item))
-		{
-			if (str_gcode) enquecommand_P(str_gcode);
-			return menu_item_ret();
-		}
+		current_position[E_AXIS] += 3.0f;
 	}
-	menu_item++;
-	return 0;
+	else
+	{
+		current_position[E_AXIS] += 7.2f;
+	}
+    float feedrate = 562;
+	plan_buffer_line_curposXYZE(feedrate / 60, active_extruder);
+    st_synchronize();
+	current_position[E_AXIS] += 14.4f;
+	feedrate = 871;
+	plan_buffer_line_curposXYZE(feedrate / 60, active_extruder);
+    st_synchronize();
+	current_position[E_AXIS] += 36.0f;
+	feedrate = 1393;
+	plan_buffer_line_curposXYZE(feedrate / 60, active_extruder);
+    st_synchronize();
+	current_position[E_AXIS] += 14.4f;
+	feedrate = 871;
+	plan_buffer_line_curposXYZE(feedrate / 60, active_extruder);
+    st_synchronize();
+	if (!saved_e_relative_mode) axis_relative_modes[E_AXIS] = false;
 }
 
+void mmu_M600_wait_and_beep() {
+		//Beep and wait for user to remove old filament and prepare new filament for load
 
-const char menu_20x_space[] PROGMEM = "                    ";
+		KEEPALIVE_STATE(PAUSED_FOR_USER);
 
-const char menu_fmt_int3[] PROGMEM = "%c%.15S:%s%3d";
+		int counterBeep = 0;
+		lcd_display_message_fullscreen_P(_i("Remove old filament and press the knob to start loading new filament."));
+		bool bFirst=true;
 
-const char menu_fmt_float31[] PROGMEM = "%-12.12S%+8.1f";
+		while (!lcd_clicked()){
+			manage_heater();
+			manage_inactivity(true);
 
-const char menu_fmt_float13[] PROGMEM = "%c%-13.13S%+5.3f";
+			#if BEEPER > 0
+			if (counterBeep == 500) {
+				counterBeep = 0;
+			}
+			SET_OUTPUT(BEEPER);
+			if (counterBeep == 0) {
+				if((eSoundMode==e_SOUND_MODE_BLIND)|| (eSoundMode==e_SOUND_MODE_LOUD)||((eSoundMode==e_SOUND_MODE_ONCE)&&bFirst))
+				{
+					bFirst=false;
+					WRITE(BEEPER, HIGH);
+				}
+			}
+			if (counterBeep == 20) {
+				WRITE(BEEPER, LOW);
+			}
+				
+			counterBeep++;
+			#endif //BEEPER > 0
 
-const char menu_fmt_float13off[] PROGMEM = "%c%-13.13S%6.6s";
-
-template<typename T>
-static void menu_draw_P(char chr, const char* str, int16_t val);
-
-template<>
-void menu_draw_P<int16_t*>(char chr, const char* str, int16_t val)
-{
-	int text_len = strlen_P(str);
-	if (text_len > 15) text_len = 15;
-	char spaces[21];
-	strcpy_P(spaces, menu_20x_space);
-	if (val <= -100) spaces[15 - text_len - 1] = 0;
-	else spaces[15 - text_len] = 0;
-	lcd_printf_P(menu_fmt_int3, chr, str, spaces, val);
+			delay_keep_alive(4);
+		}
+		WRITE(BEEPER, LOW);
 }
 
-template<>
-void menu_draw_P<uint8_t*>(char chr, const char* str, int16_t val)
-{
-    menu_data_edit_t* _md = (menu_data_edit_t*)&(menu_data[0]);
-    float factor = 1.0f + static_cast<float>(val) / 1000.0f;
-    if (val <= _md->minEditValue)
+//! @brief load filament for mmu v2
+//! @par nozzle_temp nozzle temperature to load filament
+void mmu_M600_load_filament(bool automatic, float nozzle_temp)
+{ 
+    tmp_extruder = mmu_extruder;
+    if (!automatic)
     {
-        lcd_printf_P(menu_fmt_float13off, chr, str, " [off]");
+    #ifdef MMU_M600_SWITCH_EXTRUDER
+        bool yes = lcd_show_fullscreen_message_yes_no_and_wait_P(_i("Do you want to switch extruder?"), false);
+        if(yes) tmp_extruder = choose_extruder_menu();
+    #endif //MMU_M600_SWITCH_EXTRUDER
     }
     else
     {
-        lcd_printf_P(menu_fmt_float13, chr, str, factor);
+        tmp_extruder = ad_getAlternative(tmp_extruder);
+    }
+    lcd_update_enable(false);
+    lcd_clear();
+    lcd_set_cursor(0, 1); lcd_puts_P(_T(MSG_LOADING_FILAMENT));
+    lcd_print(" ");
+    lcd_print(tmp_extruder + 1);
+    snmm_filaments_used |= (1 << tmp_extruder); //for stop print
+
+    //printf_P(PSTR("T code: %d \n"), tmp_extruder);
+    //mmu_printf_P(PSTR("T%d\n"), tmp_extruder);
+    setTargetHotend(nozzle_temp,active_extruder);
+    mmu_wait_for_heater_blocking();
+
+    mmu_command(MmuCmd::T0 + tmp_extruder);
+
+    manage_response(false, true, MMU_LOAD_MOVE);
+    mmu_continue_loading(is_usb_printing || (lcd_commands_type == LcdCommands::Layer1Cal));
+    mmu_extruder = tmp_extruder; //filament change is finished
+
+    mmu_load_to_nozzle();
+    load_filament_final_feed();
+    st_synchronize();
+}
+
+
+#ifdef SNMM
+void extr_mov(float shift, float feed_rate)
+{ //move extruder no matter what the current heater temperature is
+	set_extrude_min_temp(.0);
+	current_position[E_AXIS] += shift;
+	plan_buffer_line_curposXYZE(feed_rate, active_extruder);
+	set_extrude_min_temp(EXTRUDE_MINTEMP);
+}
+#endif //SNMM
+
+
+void change_extr(int
+#ifdef SNMM
+        extr
+#endif //SNMM
+        ) { //switches multiplexer for extruders
+#ifdef SNMM
+	st_synchronize();
+	_delay(100);
+
+	disable_e0();
+	disable_e1();
+	disable_e2();
+
+	mmu_extruder = extr;
+
+	pinMode(E_MUX0_PIN, OUTPUT);
+	pinMode(E_MUX1_PIN, OUTPUT);
+
+	switch (extr) {
+	case 1:
+		WRITE(E_MUX0_PIN, HIGH);
+		WRITE(E_MUX1_PIN, LOW);
+		
+		break;
+	case 2:
+		WRITE(E_MUX0_PIN, LOW);
+		WRITE(E_MUX1_PIN, HIGH);
+		
+		break;
+	case 3:
+		WRITE(E_MUX0_PIN, HIGH);
+		WRITE(E_MUX1_PIN, HIGH);
+		
+		break;
+	default:
+		WRITE(E_MUX0_PIN, LOW);
+		WRITE(E_MUX1_PIN, LOW);
+		
+		break;
+	}
+	_delay(100);
+#endif
+}
+
+int get_ext_nr()
+{ //reads multiplexer input pins and return current extruder number (counted from 0)
+#ifndef SNMM
+	return(mmu_extruder); //update needed
+#else 
+	return(2 * READ(E_MUX1_PIN) + READ(E_MUX0_PIN));
+#endif
+}
+
+
+void display_loading()
+{
+	switch (mmu_extruder) 
+	{
+	case 1: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T1)); break;
+	case 2: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T2)); break;
+	case 3: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T3)); break;
+	default: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T0)); break;
+	}
+}
+
+void extr_adj(uint8_t extruder) //loading filament for SNMM
+{
+#ifndef SNMM
+    MmuCmd cmd = MmuCmd::L0 + extruder;
+    if (extruder > (MmuCmd::L4 - MmuCmd::L0))
+    {
+        printf_P(PSTR("Filament out of range %d \n"),extruder);
+        return;
+    }
+    mmu_command(cmd);
+	
+	//show which filament is currently loaded
+	
+	lcd_update_enable(false);
+	lcd_clear();
+	lcd_set_cursor(0, 1); lcd_puts_P(_T(MSG_LOADING_FILAMENT));
+	//if(strlen(_T(MSG_LOADING_FILAMENT))>18) lcd.setCursor(0, 1);
+	//else lcd.print(" ");
+	lcd_print(" ");
+	lcd_print(extruder + 1);
+
+	// get response
+	manage_response(false, false);
+
+	lcd_update_enable(true);
+	
+	
+	//lcd_return_to_status();
+#else
+
+	bool correct;
+	max_feedrate[E_AXIS] =80;
+	//max_feedrate[E_AXIS] = 50;
+	START:
+	lcd_clear();
+	lcd_set_cursor(0, 0); 
+	switch (extruder) {
+	case 1: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T1)); break;
+	case 2: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T2)); break;
+	case 3: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T3)); break;
+	default: lcd_display_message_fullscreen_P(_T(MSG_FILAMENT_LOADING_T0)); break;   
+	}
+	KEEPALIVE_STATE(PAUSED_FOR_USER);
+	do{
+		extr_mov(0.001,1000);
+		delay_keep_alive(2);
+	} while (!lcd_clicked());
+	//delay_keep_alive(500);
+	KEEPALIVE_STATE(IN_HANDLER);
+	st_synchronize();
+	//correct = lcd_show_fullscreen_message_yes_no_and_wait_P(MSG_FIL_LOADED_CHECK, false);
+	//if (!correct) goto	START;
+	//extr_mov(BOWDEN_LENGTH/2.f, 500); //dividing by 2 is there because of max. extrusion length limitation (x_max + y_max)
+	//extr_mov(BOWDEN_LENGTH/2.f, 500);
+	extr_mov(bowden_length[extruder], 500);
+	lcd_clear();
+	lcd_set_cursor(0, 0); lcd_puts_P(_T(MSG_LOADING_FILAMENT));
+	if(strlen(_T(MSG_LOADING_FILAMENT))>18) lcd_set_cursor(0, 1);
+	else lcd_print(" ");
+	lcd_print(mmu_extruder + 1);
+	lcd_set_cursor(0, 2); lcd_puts_P(_T(MSG_PLEASE_WAIT));
+	st_synchronize();
+	max_feedrate[E_AXIS] = 50;
+	lcd_update_enable(true);
+	lcd_return_to_status();
+	lcdDrawUpdate = 2;
+#endif
+}
+
+struct E_step
+{
+    float extrude;   //!< extrude distance in mm
+    float feed_rate; //!< feed rate in mm/s
+};
+static const E_step ramming_sequence[] PROGMEM =
+{
+    {1.0,   1000.0/60},
+    {1.0,   1500.0/60},
+    {2.0,   2000.0/60},
+    {1.5,   3000.0/60},
+    {2.5,   4000.0/60},
+    {-15.0, 5000.0/60},
+    {-14.0, 1200.0/60},
+    {-6.0,  600.0/60},
+    {10.0,  700.0/60},
+    {-10.0, 400.0/60},
+    {-50.0, 2000.0/60},
+};
+
+//! @brief Unload sequence to optimize shape of the tip of the unloaded filament
+void mmu_filament_ramming()
+{
+    for(uint8_t i = 0; i < (sizeof(ramming_sequence)/sizeof(E_step));++i)
+    {
+        current_position[E_AXIS] += pgm_read_float(&(ramming_sequence[i].extrude));
+        plan_buffer_line_curposXYZE(pgm_read_float(&(ramming_sequence[i].feed_rate)), active_extruder);
+        st_synchronize();
     }
 }
 
-//! @brief Draw up to 10 chars of text and a float number in format from +0.0 to +12345.0. The increased range is necessary
-//! for displaying large values of extruder positions, which caused text overflow in the previous implementation.
-//! 
-//! @param str string label to print
-//! @param val value to print aligned to the right side of the display  
-//! 
-//! Implementation comments:
-//! The text needs to come with a colon ":", this function does not append it anymore.
-//! That resulted in a much shorter implementation (234628B -> 234476B)
-//! There are similar functions around which may be shortened in a similar way
-void menu_draw_float31(const char* str, float val)
+//-//
+void extr_unload_()
 {
-	lcd_printf_P(menu_fmt_float31, str, val);	
-}
-
-//! @brief Draw up to 14 chars of text and a float number in format +1.234
-//! 
-//! @param str string label to print
-//! @param val value to print aligned to the right side of the display  
-//! 
-//! Implementation comments:
-//! This function uses similar optimization principles as menu_draw_float31
-//! (i.e. str must include a ':' at its end)
-//! FLASH usage dropped 234476B -> 234392B
-//! Moreover, this function gets inlined in the final code, so removing it doesn't really help ;)
-void menu_draw_float13(const char* str, float val)
-{
-	lcd_printf_P(menu_fmt_float13, ' ', str, val);
-}
-
-template <typename T>
-static void _menu_edit_P(void)
-{
-	menu_data_edit_t* _md = (menu_data_edit_t*)&(menu_data[0]);
-	if (lcd_draw_update)
+//if(bFilamentAction)
+if(0)
 	{
-		if (lcd_encoder < _md->minEditValue) lcd_encoder = _md->minEditValue;
-		if (lcd_encoder > _md->maxEditValue) lcd_encoder = _md->maxEditValue;
-		lcd_set_cursor(0, 1);
-		menu_draw_P<T>(' ', _md->editLabel, (int)lcd_encoder);
-	}
-	if (LCD_CLICKED)
-	{
-		*((T)(_md->editValue)) = lcd_encoder;
-		menu_back_no_reset();
+     bFilamentAction=false;
+     extr_unload();
+     }
+else	{
+     eFilamentAction=FilamentAction::MmuUnLoad;
+     bFilamentFirstRun=false;
+     if(target_temperature[0]>=EXTRUDE_MINTEMP)
+          {
+          bFilamentPreheatState=true;
+          mFilamentItem(target_temperature[0],target_temperature_bed);
+          }
+//     else menu_submenu(mFilamentMenu);
+     else mFilamentMenu();
 	}
 }
 
-template <typename T>
-uint8_t menu_item_edit_P(const char* str, T pval, int16_t min_val, int16_t max_val)
+//! @brief show which filament is currently unloaded
+void extr_unload_view()
 {
-	menu_data_edit_t* _md = (menu_data_edit_t*)&(menu_data[0]);
-	if (menu_item == menu_line)
+    lcd_clear();
+    lcd_set_cursor(0, 1); lcd_puts_P(_T(MSG_UNLOADING_FILAMENT));
+    lcd_print(" ");
+    if (mmu_extruder == MMU_FILAMENT_UNKNOWN) lcd_print(" ");
+    else lcd_print(mmu_extruder + 1);
+}
+
+void extr_unload()
+{ //unload just current filament for multimaterial printers
+#ifdef SNMM
+	float tmp_motor[3] = DEFAULT_PWM_MOTOR_CURRENT;
+	float tmp_motor_loud[3] = DEFAULT_PWM_MOTOR_CURRENT_LOUD;
+	uint8_t SilentMode = eeprom_read_byte((uint8_t*)EEPROM_SILENT);
+#endif
+
+	if (degHotend0() > EXTRUDE_MINTEMP)
 	{
-		if (lcd_draw_update) 
-		{
-			lcd_set_cursor(0, menu_row);
-			menu_draw_P<T>(menu_selection_mark(), str, *pval);
+#ifndef SNMM
+		st_synchronize();
+
+        menu_submenu(extr_unload_view);
+
+		mmu_filament_ramming();
+
+		mmu_command(MmuCmd::U0);
+		// get response
+		manage_response(false, true, MMU_UNLOAD_MOVE);
+
+        menu_back();
+#else //SNMM
+
+		lcd_clear();
+		lcd_display_message_fullscreen_P(PSTR(""));
+		max_feedrate[E_AXIS] = 50;
+		lcd_set_cursor(0, 0); lcd_puts_P(_T(MSG_UNLOADING_FILAMENT));
+		lcd_print(" ");
+		lcd_print(mmu_extruder + 1);
+		lcd_set_cursor(0, 2); lcd_puts_P(_T(MSG_PLEASE_WAIT));
+		if (current_position[Z_AXIS] < 15) {
+			current_position[Z_AXIS] += 15; //lifting in Z direction to make space for extrusion
+			plan_buffer_line_curposXYZE(25, active_extruder);
 		}
-		if (menu_clicked && (lcd_encoder == menu_item))
-		{
-			menu_submenu_no_reset(_menu_edit_P<T>);
-			_md->editLabel = str;
-			_md->editValue = pval;
-			_md->minEditValue = min_val;
-			_md->maxEditValue = max_val;
-			lcd_encoder = *pval;
-			return menu_item_ret();
+		
+		current_position[E_AXIS] += 10; //extrusion
+		plan_buffer_line_curposXYZE(10, active_extruder);
+		st_current_set(2, E_MOTOR_HIGH_CURRENT);
+		if (current_temperature[0] < 230) { //PLA & all other filaments
+			current_position[E_AXIS] += 5.4;
+			plan_buffer_line_curposXYZE(2800 / 60, active_extruder);
+			current_position[E_AXIS] += 3.2;
+			plan_buffer_line_curposXYZE(3000 / 60, active_extruder);
+			current_position[E_AXIS] += 3;
+			plan_buffer_line_curposXYZE(3400 / 60, active_extruder);
 		}
+		else { //ABS
+			current_position[E_AXIS] += 3.1;
+			plan_buffer_line_curposXYZE(2000 / 60, active_extruder);
+			current_position[E_AXIS] += 3.1;
+			plan_buffer_line_curposXYZE(2500 / 60, active_extruder);
+			current_position[E_AXIS] += 4;
+			plan_buffer_line_curposXYZE(3000 / 60, active_extruder);
+			/*current_position[X_AXIS] += 23; //delay
+			plan_buffer_line_curposXYZE(600 / 60, active_extruder); //delay
+			current_position[X_AXIS] -= 23; //delay
+			plan_buffer_line_curposXYZE(600 / 60, active_extruder); //delay*/
+			delay_keep_alive(4700);
+		}
+	
+		max_feedrate[E_AXIS] = 80;
+		current_position[E_AXIS] -= (bowden_length[mmu_extruder] + 60 + FIL_LOAD_LENGTH) / 2;
+		plan_buffer_line_curposXYZE(500, active_extruder);
+		current_position[E_AXIS] -= (bowden_length[mmu_extruder] + 60 + FIL_LOAD_LENGTH) / 2;
+		plan_buffer_line_curposXYZE(500, active_extruder);
+		st_synchronize();
+		//st_current_init();
+		if (SilentMode != SILENT_MODE_OFF) st_current_set(2, tmp_motor[2]); //set back to normal operation currents
+		else st_current_set(2, tmp_motor_loud[2]);
+		lcd_update_enable(true);
+		lcd_return_to_status();
+		max_feedrate[E_AXIS] = 50;
+#endif //SNMM
 	}
-	menu_item++;
-	return 0;
+	else
+	{
+		show_preheat_nozzle_warning();
+	}
 }
 
-template uint8_t menu_item_edit_P<int16_t*>(const char* str, int16_t *pval, int16_t min_val, int16_t max_val);
-template uint8_t menu_item_edit_P<uint8_t*>(const char* str, uint8_t *pval, int16_t min_val, int16_t max_val);
+//wrapper functions for loading filament
+void extr_adj_0()
+{
+#ifndef SNMM
+	enquecommand_P(PSTR("M701 E0"));
+#else
+	change_extr(0);
+	extr_adj(0);
+#endif
+}
 
-#undef _menu_data
+void extr_adj_1()
+{
+#ifndef SNMM
+	enquecommand_P(PSTR("M701 E1"));
+#else
+	change_extr(1);
+	extr_adj(1);
+#endif
+}
+
+void extr_adj_2()
+{
+#ifndef SNMM
+	enquecommand_P(PSTR("M701 E2"));
+#else
+	change_extr(2);
+	extr_adj(2);
+#endif
+}
+
+void extr_adj_3()
+{
+#ifndef SNMM
+	enquecommand_P(PSTR("M701 E3"));
+#else
+	change_extr(3);
+	extr_adj(3);
+#endif
+}
+
+void extr_adj_4()
+{
+#ifndef SNMM
+	enquecommand_P(PSTR("M701 E4"));
+#else
+	change_extr(4);
+	extr_adj(4);
+#endif
+}
+
+void load_all()
+{
+#ifndef SNMM
+	enquecommand_P(PSTR("M701 E0"));
+	enquecommand_P(PSTR("M701 E1"));
+	enquecommand_P(PSTR("M701 E2"));
+	enquecommand_P(PSTR("M701 E3"));
+	enquecommand_P(PSTR("M701 E4"));
+#else
+	for (int i = 0; i < 4; i++)
+	{
+		change_extr(i);
+		extr_adj(i);
+	}
+#endif
+}
+
+//wrapper functions for changing extruders
+void extr_change_0()
+{
+	change_extr(0);
+	lcd_return_to_status();
+}
+
+void extr_change_1()
+{
+	change_extr(1);
+	lcd_return_to_status();
+}
+
+void extr_change_2()
+{
+	change_extr(2);
+	lcd_return_to_status();
+}
+
+void extr_change_3()
+{
+	change_extr(3);
+	lcd_return_to_status();
+}
+
+#ifdef SNMM
+//wrapper functions for unloading filament
+void extr_unload_all()
+{
+	if (degHotend0() > EXTRUDE_MINTEMP)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			change_extr(i);
+			extr_unload();
+		}
+	}
+	else
+	{
+		show_preheat_nozzle_warning();
+		lcd_return_to_status();
+	}
+}
+
+//unloading just used filament (for snmm)
+void extr_unload_used()
+{
+	if (degHotend0() > EXTRUDE_MINTEMP) {
+		for (int i = 0; i < 4; i++) {
+			if (snmm_filaments_used & (1 << i)) {
+				change_extr(i);
+				extr_unload();
+			}
+		}
+		snmm_filaments_used = 0;
+	}
+	else {
+		show_preheat_nozzle_warning();
+		lcd_return_to_status();
+	}
+}
+#endif //SNMM
+
+void extr_unload_0()
+{
+	change_extr(0);
+	extr_unload();
+}
+
+void extr_unload_1()
+{
+	change_extr(1);
+	extr_unload();
+}
+
+void extr_unload_2()
+{
+	change_extr(2);
+	extr_unload();
+}
+
+void extr_unload_3()
+{
+	change_extr(3);
+	extr_unload();
+}
+
+void extr_unload_4()
+{
+	change_extr(4);
+	extr_unload();
+}
+
+bool mmu_check_version()
+{
+	return (mmu_buildnr >= MMU_REQUIRED_FW_BUILDNR);
+}
+
+void mmu_show_warning()
+{
+	printf_P(PSTR("MMU2 firmware version invalid. Required version: build number %d or higher."), MMU_REQUIRED_FW_BUILDNR);
+	kill(_i("Please update firmware in your MMU2. Waiting for reset."));
+}
+
+void lcd_mmu_load_to_nozzle(uint8_t filament_nr)
+{
+    menu_back();
+    bFilamentAction = false;                            // NOT in "mmu_load_to_nozzle_menu()"
+    if (degHotend0() > EXTRUDE_MINTEMP)
+    {
+        tmp_extruder = filament_nr;
+        lcd_update_enable(false);
+        lcd_clear();
+        lcd_set_cursor(0, 1);
+        lcd_puts_P(_T(MSG_LOADING_FILAMENT));
+        lcd_print(" ");
+        lcd_print(tmp_extruder + 1);
+        mmu_command(MmuCmd::T0 + tmp_extruder);
+        manage_response(true, true, MMU_TCODE_MOVE);
+        mmu_continue_loading(false);
+        mmu_extruder = tmp_extruder; //filament change is finished
+        marlin_rise_z();
+        mmu_load_to_nozzle();
+        load_filament_final_feed();
+        st_synchronize();
+        custom_message_type = CustomMsg::FilamentLoading;
+        lcd_setstatuspgm(_T(MSG_LOADING_FILAMENT));
+        lcd_return_to_status();
+        lcd_update_enable(true);
+        lcd_load_filament_color_check();
+        lcd_setstatuspgm(_T(WELCOME_MSG));
+        custom_message_type = CustomMsg::Status;
+    }
+    else
+    {
+        show_preheat_nozzle_warning();
+    }
+}
+
+#ifdef MMU_HAS_CUTTER
+void mmu_cut_filament(uint8_t filament_nr)
+{
+    menu_back();
+    bFilamentAction=false;                            // NOT in "mmu_load_to_nozzle_menu()"
+    if (degHotend0() > EXTRUDE_MINTEMP)
+    {
+        LcdUpdateDisabler disableLcdUpdate;
+        lcd_clear();
+        lcd_set_cursor(0, 1); lcd_puts_P(_i("Cutting filament")); //// c=18 r=1
+        lcd_print(" ");
+        lcd_print(filament_nr + 1);
+        mmu_filament_ramming();
+        mmu_command(MmuCmd::K0 + filament_nr);
+        manage_response(false, false, MMU_UNLOAD_MOVE);
+    }
+    else
+    {
+        show_preheat_nozzle_warning();
+    }
+}
+#endif //MMU_HAS_CUTTER
+
+void mmu_eject_filament(uint8_t filament, bool recover)
+{
+//-//
+bFilamentAction=false;                            // NOT in "mmu_fil_eject_menu()"
+	if (filament < 5) 
+	{
+
+		if (degHotend0() > EXTRUDE_MINTEMP)
+		{
+			st_synchronize();
+
+			{
+			    LcdUpdateDisabler disableLcdUpdate;
+                lcd_clear();
+                lcd_set_cursor(0, 1); lcd_puts_P(_i("Ejecting filament"));
+                mmu_filament_ramming();
+                mmu_command(MmuCmd::E0 + filament);
+                manage_response(false, false, MMU_UNLOAD_MOVE);
+                if (recover)
+                {
+                    lcd_show_fullscreen_message_and_wait_P(_i("Please remove filament and then press the knob."));
+                    mmu_command(MmuCmd::R0);
+                    manage_response(false, false);
+                }
+
+            }
+		}
+		else
+		{
+			show_preheat_nozzle_warning();
+		}
+	}
+	else
+	{
+		puts_P(PSTR("Filament nr out of range!"));
+	}
+}
+
+//! @brief Fits filament tip into heatbreak?
+//!
+//! If PTFE tube is jammed, this causes filament to be unloaded and no longer
+//! being detected by the pulley IR sensor.
+//! @retval true Fits
+//! @retval false Doesn't fit
+static bool can_load()
+{
+    #ifdef SLICEMAGNUM //Kuo
+      current_position[E_AXIS] += 67;
+    #elif defined(SKELESTRUDER)
+      current_position[E_AXIS] += 50;
+    #else
+      current_position[E_AXIS] += 60;
+    #endif //Kuo ===
+    plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
+    
+    #ifdef SLICEMAGNUM //Kuo
+      current_position[E_AXIS] -= 59;
+    #elif defined(SKELESTRUDER)
+      current_position[E_AXIS] -= 42;
+    #else
+      current_position[E_AXIS] -= 52;
+    #endif //Kuo ===
+	plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
+    st_synchronize();
+
+    uint_least8_t filament_detected_count = 0;
+    const float e_increment = 0.2;
+    const uint_least8_t steps = 6.0 / e_increment;
+    DEBUG_PUTS_P(PSTR("MMU can_load:"));
+    for(uint_least8_t i = 0; i < steps; ++i)
+    {
+        current_position[E_AXIS] -= e_increment;
+        plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
+        st_synchronize();
+        if(0 == PIN_GET(IR_SENSOR_PIN))
+        {
+            ++filament_detected_count;
+            DEBUG_PUTCHAR('O');
+        }
+        else
+        {
+            DEBUG_PUTCHAR('o');
+        }
+    }
+    if (filament_detected_count > steps - 4)
+    {
+        DEBUG_PUTS_P(PSTR(" succeeded."));
+        return true;
+    }
+    else
+    {
+        DEBUG_PUTS_P(PSTR(" failed."));
+        return false;
+    }
+}
+
+//! @brief load more
+//!
+//! Try to feed more filament from MMU if it is not detected by filament sensor.
+//! @retval true Success, filament detected by IR sensor
+//! @retval false Failed, filament not detected by IR sensor after maximum number of attempts
+static bool load_more()
+{
+    for (uint8_t i = 0; i < MMU_IDLER_SENSOR_ATTEMPTS_NR; i++)
+    {
+        if (PIN_GET(IR_SENSOR_PIN) == 0) return true;
+        DEBUG_PRINTF_P(PSTR("Additional load attempt nr. %d\n"), i);
+        mmu_command(MmuCmd::C0);
+        manage_response(true, true, MMU_LOAD_MOVE);
+    }
+    return false;
+}
+
+static void increment_load_fail()
+{
+    uint8_t mmu_load_fail = eeprom_read_byte((uint8_t*)EEPROM_MMU_LOAD_FAIL);
+    uint16_t mmu_load_fail_tot = eeprom_read_word((uint16_t*)EEPROM_MMU_LOAD_FAIL_TOT);
+    if(mmu_load_fail < 255) eeprom_update_byte((uint8_t*)EEPROM_MMU_LOAD_FAIL, mmu_load_fail + 1);
+    if(mmu_load_fail_tot < 65535) eeprom_update_word((uint16_t*)EEPROM_MMU_LOAD_FAIL_TOT, mmu_load_fail_tot + 1);
+}
+
+//! @brief continue loading filament
+//! @par blocking
+//!  * true blocking - do not return until successful load
+//!  * false non-blocking - pause print and return on load failure
+//!
+//! @startuml
+//! [*] --> [*] : !ir_sensor_detected /\n send MmuCmd::C0
+//! [*] --> LoadMore
+//! LoadMore --> [*] : filament \ndetected
+//! LoadMore --> Retry : !filament detected /\n increment load fail
+//! Retry --> [*] : filament \ndetected
+//! Retry --> Unload : !filament \ndetected
+//! Unload --> [*] : non-blocking
+//! Unload --> Retry : button \nclicked
+//!
+//! Retry : Cut filament if enabled
+//! Retry : repeat last T-code
+//! Unload : unload filament
+//! Unload : pause print
+//! Unload : show error message
+//!
+//! @enduml
+void mmu_continue_loading(bool blocking)
+{
+	if (!ir_sensor_detected)
+	{
+	    mmu_command(MmuCmd::C0);
+	    return;
+	}
+
+    bool success = load_more();
+    if (success) success = can_load();
+
+    enum class Ls : uint_least8_t
+    {
+        Enter,
+        Retry,
+        Unload,
+    };
+    Ls state = Ls::Enter;
+
+    const uint_least8_t max_retry = 2;
+    uint_least8_t retry = 0;
+
+    while (!success)
+    {
+        switch (state)
+        {
+        case Ls::Enter:
+            increment_load_fail();
+            // no break
+        case Ls::Retry:
+#ifdef MMU_HAS_CUTTER
+            if (1 == eeprom_read_byte((uint8_t*)EEPROM_MMU_CUTTER_ENABLED))
+            {
+                mmu_command(MmuCmd::K0 + tmp_extruder);
+                manage_response(true, true, MMU_UNLOAD_MOVE);
+            }
+#endif //MMU_HAS_CUTTER
+            mmu_command(MmuCmd::T0 + tmp_extruder);
+            manage_response(true, true, MMU_TCODE_MOVE);
+            success = load_more();
+            if (success) success = can_load();
+            ++retry; // overflow not handled, as it is not dangerous.
+            if (retry >= max_retry) state = Ls::Unload;
+            break;
+        case Ls::Unload:
+            stop_and_save_print_to_ram(0, 0);
+
+            //lift z
+            current_position[Z_AXIS] += Z_PAUSE_LIFT;
+            if (current_position[Z_AXIS] > Z_MAX_POS) current_position[Z_AXIS] = Z_MAX_POS;
+            plan_buffer_line_curposXYZE(15, active_extruder);
+            st_synchronize();
+
+            //Move XY to side
+            current_position[X_AXIS] = X_PAUSE_POS;
+            current_position[Y_AXIS] = Y_PAUSE_POS;
+            plan_buffer_line_curposXYZE(50, active_extruder);
+            st_synchronize();
+
+            mmu_command(MmuCmd::U0);
+            manage_response(false, true, MMU_UNLOAD_MOVE);
+
+            setAllTargetHotends(0);
+            lcd_setstatuspgm(_i("MMU load failed     "));////c=20 r=1
+
+            if (blocking)
+            {
+                marlin_wait_for_click();
+                restore_print_from_ram_and_continue(0);
+                state = Ls::Retry;
+            }
+            else
+            {
+                mmu_fil_loaded = false; //so we can retry same T-code again
+                isPrintPaused = true;
+                mmu_command(MmuCmd::W0);
+                return;
+            }
+            break;
+        }
+    }
+}
