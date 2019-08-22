@@ -2,7 +2,7 @@
 
 VFA's are a solved issue with 0.9 degree stepper motors. This post is a summary of what is needed to use 0.9 degree motors.
 
-# New branch based on Prusa 3.8.0 
+# Now based on Prusa 3.8.0 
 Includes 
 0.9 motor support
 Slice thermistor
