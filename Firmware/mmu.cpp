@@ -1463,31 +1463,11 @@ bFilamentAction=false;                            // NOT in "mmu_fil_eject_menu(
 //! @retval false Doesn't fit
 static bool can_load()
 {
- //   current_position[E_AXIS] += 60;
- //   plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
- //   current_position[E_AXIS] -= 52;
- //   plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
- //   st_synchronize();
-	
-    //Kuo
-    #ifdef SLICEMAGNUM
-      current_position[E_AXIS] += 67;
-    #elif defined(SKELESTRUDER)
-      current_position[E_AXIS] += 50;
-    #else
-      current_position[E_AXIS] += 60;
-    #endif
+    current_position[E_AXIS] += 60;
     plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
-    #ifdef SLICEMAGNUM //Kuo
-      current_position[E_AXIS] -= 59;
-    #elif defined(SKELESTRUDER)
-      current_position[E_AXIS] -= 42;
-    #else
-      current_position[E_AXIS] -= 52;
-    #endif
+    current_position[E_AXIS] -= 52;
     plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
     st_synchronize();
-    //Kuo ===
 	
     uint_least8_t filament_detected_count = 0;
     const float e_increment = 0.2;
