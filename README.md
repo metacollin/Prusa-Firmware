@@ -4,9 +4,13 @@ VFA's are a solved issue with 0.9 degree stepper motors. This post is a summary 
 
 # Now based on Prusa 3.8.0 
 Includes 
+
 0.9 motor support
+
 Slice thermistor
+
 Linear Advance 1.5
+
 filament move changes for Slice magnum, BMG, skelestruder
 
 # MUST UPDATE RAMBO BOARD In ARDUINO IDE TO PRUSA RESEARCH VERSION!!!!!!
