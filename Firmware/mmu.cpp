@@ -1471,7 +1471,13 @@ static bool can_load()
       current_position[E_AXIS] += 60;
     #endif //Kuo ===	
     plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
-    current_position[E_AXIS] -= 52;
+    #ifdef SLICEMAGNUM //Kuo
+      current_position[E_AXIS] -= 59;
+    #elif defined(SKELESTRUDER)
+      current_position[E_AXIS] -= 42;
+    #else
+      current_position[E_AXIS] -= 52;
+    #endif //Kuo ===
     plan_buffer_line_curposXYZE(MMU_LOAD_FEEDRATE, active_extruder);
     st_synchronize();
 	
