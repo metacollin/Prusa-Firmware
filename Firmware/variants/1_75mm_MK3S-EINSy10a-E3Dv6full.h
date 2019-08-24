@@ -88,59 +88,47 @@
 //Reversion back from geared extruder requires sending M92 E280 & M500 to printer
 //
 //#define SKELESTRUDER // Uncomment if you have a skelestruder. Applies the patches for load distances and Z height.
-//#define BMG_EXTRUDER //Kuo Uncomment for BMG 3:1 extruder. This also sets BMG height for you.
+//#define BONDTECH_PRUSA_UPGRADE_MK3 //Kuo Uncomment for Bondtech MK3 extruder upgrade. 3:1 extruder. This also sets Z_MAX_POS 205.
+//#define BONDTECH_PRUSA_UPGRADE_MK3S //Kuo Uncomment for Bondtech MK3S extruder upgrade. (Note the S!!!!) 3:1 extruder. This also sets Z_MAX_POS 205.
 //#define EXTRUDER_GEARRATIO_30 //Kuo Uncomment for extruder with gear ratio 3.0. 
 //#define EXTRUDER_GEARRATIO_3375 //Kuo Uncomment for extruder with gear ratio 3.375 like 54:16 BNBSX.
 //#define EXTRUDER_GEARRATIO_35 //Kuo Uncomment for extruder with gear ratio 3.5 like 56:16 Bunny and Bear Short Ears or Skelestruder.
 
 //====== Kuo Slice Support
-//#define SLICETHERMISTOR //uncomment for Slice Thermistor
-//#define SLICEMAGNUM //uncomment to increase MMU2S filament laod/unload distances for Slice Magnum
+#define SLICETHERMISTOR //uncomment for Slice Thermistor
+#define SLICEMAGNUM //uncomment to adjust MMU2S filament laod/unload distances for Slice Magnum
 
 //====== Kuo End of defines one normally needs to change ======
 
 // Steps per unit {X,Y,Z,E}
 
 #ifdef SKELESTRUDER
-  #define EXTRUDER_GEARRATIO_35
-#endif
-
-#ifndef EXTRUDER_GEARED //Kuo for e-axis msteps
-#ifdef BMG_EXTRUDER 
-  #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,415} //BMG approx 3:1 geared extruder
+  #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,420} //Skelestruder 3.0 geared extruder 
+  #define TMC2130_UNLOAD_CURRENT_R 20  //higher unload current than stock for M600
+  
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3)
+  #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,415} //Bondtech upgrade MK3 approx 3:1 geared extruder
   #define TMC2130_UNLOAD_CURRENT_R 20 //BMG unload current for M600
-  #define EXTRUDER_GEARED 1
-#endif
-#endif
-
-#ifndef EXTRUDER_GEARED //Kuo for e-axis msteps
-#ifdef EXTRUDER_GEARRATIO_30
+  
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3S)
+  #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,415} //Bondtech upgrade MK3S (Note the S!!!!) approx 3:1 geared extruder
+  #define TMC2130_UNLOAD_CURRENT_R 20 //BMG unload current for M600
+  
+#elif defined(EXTRUDER_GEARRATIO_30)
   #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,420} //3.0 geared extruder 
-  #define TMC2130_UNLOAD_CURRENT_R 20  //higher unload current thans stock for M600
-  #define EXTRUDER_GEARED 1
-#endif
-#endif
+  #define TMC2130_UNLOAD_CURRENT_R 20  //higher unload current than stock for M600
 
-#ifndef EXTRUDER_GEARED //Kuo for e-axis msteps
-#ifdef EXTRUDER_GEARRATIO_3375
+#elif defined(EXTRUDER_GEARRATIO_3375)
   #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,473} //3.375 geared extruder like 54:16 BNBSX
   #define TMC2130_UNLOAD_CURRENT_R 20  //higher unload current thans stock for M600 
-  #define EXTRUDER_GEARED 1
-#endif
-#endif
 
-#ifndef EXTRUDER_GEARED //Kuo for e-axis msteps
-#ifdef EXTRUDER_GEARRATIO_35
+#elif defined(EXTRUDER_GEARRATIO_35)
   #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,490} //3.5 geared extruder like 56:16 BNBSX
   #define TMC2130_UNLOAD_CURRENT_R 20  //higher unload current thans stock for M600 
-  #define EXTRUDER_GEARED 1
-#endif
-#endif
 
-#ifndef EXTRUDER_GEARED //Kuo for e-axis msteps
+#else
   #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280} //default steps/unit e-axis
   #define TMC2130_UNLOAD_CURRENT_R 12  //lower current for M600 to protect filament sensor with stock extruder
-  //Don't set EXTRUDER_GEARED because extruder is NOT geared.
 #endif
 
 // Endstop inverting
@@ -166,10 +154,12 @@
 #define X_MIN_POS 0
 #define Y_MAX_POS 212.5
 #define Y_MIN_POS -4 //orig -4
-#ifdef BMG_EXTRUDER  //kuo BMG height
-  #define Z_MAX_POS 205
-#elif defined(SKELESTRUDER)//Skelestruder height
+#ifdef SKELESTRUDER //kuo Skelestruder height
   #define Z_MAX_POS 220
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3) //kuo BMG height
+  #define Z_MAX_POS 205
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3S)//kuo BMG height
+  #define Z_MAX_POS 205
 #else
   #define Z_MAX_POS 210 //default height
 #endif
@@ -603,17 +593,21 @@
 // Load filament commands
 #define LOAD_FILAMENT_0 "M83"
 #define LOAD_FILAMENT_1 "G1 E70 F400"
-#ifndef BMG_EXTRUDER //Kuo BMG load
-  #define LOAD_FILAMENT_2 "G1 E40 F100"
+#ifdef BONDTECH_PRUSA_UPGRADE_MK3
+  #define LOAD_FILAMENT_2 "G1 E50 F100"  //Kuo BMG load
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3S)
+  #define LOAD_FILAMENT_2 "G1 E50 F100"  //Kuo BMG load
 #else
-  #define LOAD_FILAMENT_2 "G1 E50 F100"
+  #define LOAD_FILAMENT_2 "G1 E40 F100" //Kuo Prusa default load
 #endif
 // Unload filament commands
 #define UNLOAD_FILAMENT_0 "M83"
-#ifndef BMG_EXTRUDER //Kuo BMG unload
-  #define UNLOAD_FILAMENT_1 "G1 E-80 F7000"
+#ifdef BONDTECH_PRUSA_UPGRADE_MK3
+  #define UNLOAD_FILAMENT_1 "G1 E-100 F7000" //Kuo BMG unload
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3S) 
+  #define UNLOAD_FILAMENT_1 "G1 E-100 F7000" //Kuo BMG load
 #else
-  #define UNLOAD_FILAMENT_1 "G1 E-100 F7000"
+  #define UNLOAD_FILAMENT_1 "G1 E-80 F7000"  //Kuo Prusa default load
 #endif
 
 /*------------------------------------
@@ -630,10 +624,12 @@
 #define FILAMENTCHANGE_FINALRETRACT -80
 
 #define FILAMENTCHANGE_FIRSTFEED 70 //E distance in mm for fast filament loading sequence used used in filament change (M600)
-#ifndef BMG_EXTRUDER //Kuo BMG FILAMENTCHANGE_FINALFEED
-  #define FILAMENTCHANGE_FINALFEED 25 //E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701) 
+#ifdef BONDTECH_PRUSA_UPGRADE_MK3 
+  #define FILAMENTCHANGE_FINALFEED 35  //Kuo BMG FILAMENTCHANGE_FINALFEED
+#elif defined(BONDTECH_PRUSA_UPGRADE_MK3S)
+  #define FILAMENTCHANGE_FINALFEED 35  //Kuo BMG FILAMENTCHANGE_FINALFEED
 #else
-  #define FILAMENTCHANGE_FINALFEED 35
+  #define FILAMENTCHANGE_FINALFEED 25 //default E distance in mm for slow filament loading sequence used used in filament change (M600) and filament load (M701) 
 #endif
 #define FILAMENTCHANGE_RECFEED 5
 
