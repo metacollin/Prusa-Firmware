@@ -95,8 +95,8 @@
 //#define EXTRUDER_GEARRATIO_35 //Kuo Uncomment for extruder with gear ratio 3.5 like 56:16 Bunny and Bear Short Ears or Skelestruder.
 
 //====== Kuo Slice Support
-#define SLICETHERMISTOR //uncomment for Slice Thermistor
-#define SLICEMAGNUM //uncomment to adjust MMU2S filament laod/unload distances for Slice Magnum
+//#define SLICETHERMISTOR //uncomment for Slice Thermistor
+//#define SLICEMAGNUM //uncomment to adjust MMU2S filament laod/unload distances for Slice Magnum
 
 //====== Kuo End of defines one normally needs to change ======
 
