@@ -13,7 +13,7 @@ Slice Magnum Mosquito
 
 Linear Advance 1.5
 
-Filament load/unload and z dimension changes for Slice magnum, BMG, skelestruder
+Filament load/unload and z dimension changes for Slice magnum, Bondtech Prusa Upgrade MK3 & MK3S extruders, Skelestruder
 
 # MUST UPDATE RAMBO BOARD In ARDUINO IDE TO PRUSA RESEARCH VERSION!!!!!!
 As of 3.8.0, Prusa moved to new board definition. You can no longer compile for the Ultimachines board. New instructions for obtaining Prusa version are in compilation directions below.
