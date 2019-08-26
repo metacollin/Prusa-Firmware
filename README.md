@@ -242,7 +242,6 @@ Optionally, skip these connectors and directly solder motor wires to harness
 I prefer to add standardized connector because I test multiple motors.
 
 
-
 ### Heatsinks for TMC2130's
 Obtain heatsinks for TMZ2130's x all 4 axes. May as well cool Z and E while taking care of X & Y)
 Required to avoid 0.9 motors overheating TMC2130 drivers, especially if run in Stealth mode. Heatsinks attach to NON-COMPONENT side of EINSY PC board. They do NOT attach on the TMC2130 chips themselves, but to thermal vias on empty side of EINSY board. Must also cut holes in back of EINSY case for fitment & adequate ventilation. Clean PC board with IPA to let self-stick thermal tape do its job. Position on the vias!.
@@ -266,6 +265,12 @@ YOTINO Bipolar Stepper Motor Cables, 4 x 100cm Long NEMA 17 Extended Connector C
 Wiring is as in pictures. Pay attention to wire order and pin positions at both EINSY and motor ends
 NB: if using retrograde motor extruder like BNBSX Short Ears, plug EINSY end in 180 degrees rotated
 NB2: LDO's use different pinout not detailed here.
+
+[DIY Stepper Cables: RGB LED Strjp Cables](https://www.amazon.com/gp/product/B01DC0KKJU/) 	$9
+BTF-LIGHTING 10 Pairs 4pin SM JST 15cm Cable Female/Male connectors for Led Strip RGB 5050 3528 WS2801 APA02
+
+If you want pre-assembled connector and wire assemblies, while not specifically intended for stepper motors, these RGB LED strip connectors are a great alternative.  They have color-coded wires that match the standard stepper motor wire colors, they are meant to handle a couple of amps or more.  These are great for steppers that have wires already attached.
+
 
 ![EINSY end of cable](https://github.com/guykuo/Prusa-Firmware/blob/0.9-Degree-Stepper-Support/einsy-end-of-cable.jpg)
 
