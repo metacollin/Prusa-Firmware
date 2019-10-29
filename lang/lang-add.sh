@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # lang-add.sh - multi-language support script
 #  add new texts from list (lang_add.txt) to all dictionary files
@@ -34,7 +34,7 @@ insert_xx()
 	#replace '[' and ']' in string with '\[' and '\]'
 	str=$(echo "$1" | sed "s/\[/\\\[/g;s/\]/\\\]/g")
 	# extract english texts, merge new text, grep line number
-	ln=$((cat lang_en_$2.txt; echo $1) | sed "/^$/d;/^#/d" | sed -n 'p;n' | sort | grep -n "$str" | sed "s/:.*//")
+	ln=$((cat lang_en_$2.txt; echo "$1") | sed "/^$/d;/^#/d" | sed -n 'p;n' | sort | grep -n "$str" | sed "s/:.*//")
 	# calculate position for insertion
 	ln=$((4*(ln-2)+1))
 	# insert new text
@@ -51,7 +51,7 @@ if ! [ -e lang_add.txt ]; then
 fi
 
 cat lang_add.txt | sed 's/^/"/;s/$/"/' | while read new_s; do
-	if grep "$new_s" lang_en.txt >/dev/nul; then
+	if grep "$new_s" lang_en.txt >/dev/null; then
 		echo "text already exist:"
 		echo "$new_s"
 		echo

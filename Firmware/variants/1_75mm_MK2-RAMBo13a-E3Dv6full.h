@@ -1,12 +1,17 @@
 #ifndef CONFIGURATION_PRUSA_H
 #define CONFIGURATION_PRUSA_H
 
+#include <limits.h>
+#include "printers.h"
 /*------------------------------------
 GENERAL SETTINGS
 *------------------------------------*/
 
 // Printer revision
 #define PRINTER_TYPE PRINTER_MK2
+#define PRINTER_NAME PRINTER_MK2_NAME
+#define PRINTER_MMU_TYPE PRINTER_MK2              // dummy item (due to successfully compilation / building only)
+#define PRINTER_MMU_NAME PRINTER_MK2_NAME         // dummy item (due to successfully compilation / building only)
 #define FILAMENT_SIZE "1_75mm_MK2"
 #define NOZZLE_TYPE "E3Dv6full"
 
@@ -96,16 +101,26 @@ AXIS SETTINGS
 // New XYZ calibration
 //#define NEW_XYZCAL
 
+// Watchdog support
+#define WATCHDOG
 
 /*------------------------------------
 EXTRUDER SETTINGS
 *------------------------------------*/
 
 // Mintemps
-#define HEATER_0_MINTEMP 15
+#define HEATER_0_MINTEMP 30
 #define HEATER_1_MINTEMP 5
 #define HEATER_2_MINTEMP 5
-#define BED_MINTEMP 15
+#define HEATER_MINTEMP_DELAY 15000                // [ms] ! if changed, check maximal allowed value @ ShortTimer
+#if HEATER_MINTEMP_DELAY>USHRT_MAX
+#error "Check maximal allowed value @ ShortTimer (see HEATER_MINTEMP_DELAY definition)"
+#endif
+#define BED_MINTEMP 30
+#define BED_MINTEMP_DELAY 50000                   // [ms] ! if changed, check maximal allowed value @ ShortTimer
+#if BED_MINTEMP_DELAY>USHRT_MAX
+#error "Check maximal allowed value @ ShortTimer (see BED_MINTEMP_DELAY definition)"
+#endif
 
 // Maxtemps
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
@@ -237,8 +252,11 @@ BED SETTINGS
 #define MESH_MEAS_NUM_X_POINTS 3
 #define MESH_MEAS_NUM_Y_POINTS 3
 
+// Maximum bed level correction value
+#define BED_ADJUSTMENT_UM_MAX 100
+
 #define MESH_HOME_Z_CALIB 0.2
-#define MESH_HOME_Z_SEARCH 5 //Z lift for homing, mesh bed leveling etc.
+#define MESH_HOME_Z_SEARCH 5.0f           // Z lift for homing, mesh bed leveling etc.
 
 #define X_PROBE_OFFSET_FROM_EXTRUDER 23     // Z probe to nozzle X offset: -left  +right
 #define Y_PROBE_OFFSET_FROM_EXTRUDER 9     // Z probe to nozzle Y offset: -front +behind
@@ -300,32 +318,28 @@ PREHEAT SETTINGS
 *------------------------------------*/
 
 #define FARM_PREHEAT_HOTEND_TEMP 250
-#define FARM_PREHEAT_HPB_TEMP 40
-#define FARM_PREHEAT_FAN_SPEED 0
+#define FARM_PREHEAT_HPB_TEMP 80
 
 #define PLA_PREHEAT_HOTEND_TEMP 215
 #define PLA_PREHEAT_HPB_TEMP 55
-#define PLA_PREHEAT_FAN_SPEED 0  
+
+#define ASA_PREHEAT_HOTEND_TEMP 260
+#define ASA_PREHEAT_HPB_TEMP 105
 
 #define ABS_PREHEAT_HOTEND_TEMP 255
 #define ABS_PREHEAT_HPB_TEMP 100
-#define ABS_PREHEAT_FAN_SPEED 0 
 
 #define HIPS_PREHEAT_HOTEND_TEMP 220
 #define HIPS_PREHEAT_HPB_TEMP 100
-#define HIPS_PREHEAT_FAN_SPEED 0 
 
 #define PP_PREHEAT_HOTEND_TEMP 254
 #define PP_PREHEAT_HPB_TEMP 100
-#define PP_PREHEAT_FAN_SPEED 0 
 
 #define PET_PREHEAT_HOTEND_TEMP 240
 #define PET_PREHEAT_HPB_TEMP 90
-#define PET_PREHEAT_FAN_SPEED 0 
 
 #define FLEX_PREHEAT_HOTEND_TEMP 230
 #define FLEX_PREHEAT_HPB_TEMP 50
-#define FLEX_PREHEAT_FAN_SPEED 0 
 
 /*------------------------------------
 THERMISTORS SETTINGS
@@ -423,6 +437,7 @@ THERMISTORS SETTINGS
 // Safety timer
 #define SAFETYTIMER
 #define DEFAULT_SAFETYTIMER_TIME_MINS 30
+#define FARM_DEFAULT_SAFETYTIMER_TIME_ms (45*60*1000ul)
 
 #define M600_TIMEOUT 600  //seconds
 
@@ -431,5 +446,7 @@ THERMISTORS SETTINGS
 #ifndef SNMM
 //#define SUPPORT_VERBOSITY
 #endif
+
+#define MMU_IDLER_SENSOR_ATTEMPTS_NR 21 //max. number of attempts to load filament if first load failed; value for max bowden length and case when loading fails right at the beginning
 
 #endif //__CONFIGURATION_PRUSA_H

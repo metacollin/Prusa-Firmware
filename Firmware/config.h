@@ -42,10 +42,15 @@
 #define W25X20CL_SPCR          SPI_SPCR(W25X20CL_SPI_RATE, 1, 1, 1, 0)
 #define W25X20CL_SPSR          SPI_SPSR(W25X20CL_SPI_RATE)
 
+#include "boards.h"
+#include "Configuration_prusa.h"
+
 //LANG - Multi-language support
-//#define LANG_MODE              0 // primary language only
-#define LANG_MODE              0 // sec. language support
-//#define LANG_SIZE_RESERVED     0x2f00 // reserved space for secondary language (12032 bytes)
+#define LANG_MODE              0 // primary language only
+
+//#define LANG_MODE              1 // sec. language support
+
+//#define LANG_SIZE_RESERVED     0x3000 // reserved space for secondary language (12288 bytes)
 
 
 #endif //_CONFIG_H

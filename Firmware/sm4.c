@@ -54,9 +54,6 @@ sm4_calc_delay_cb_t sm4_calc_delay_cb = 0;
 
 uint16_t sm4_cpu_time = 0;
 
-int test = 0;
-
-
 uint8_t sm4_get_dir(uint8_t axis)
 {
 	switch (axis)

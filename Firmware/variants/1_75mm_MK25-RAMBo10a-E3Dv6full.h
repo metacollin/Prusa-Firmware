@@ -1,12 +1,17 @@
 #ifndef CONFIGURATION_PRUSA_H
 #define CONFIGURATION_PRUSA_H
 
+#include <limits.h>
+#include "printers.h"
 /*------------------------------------
  GENERAL SETTINGS
  *------------------------------------*/
 
 // Printer revision
 #define PRINTER_TYPE PRINTER_MK25
+#define PRINTER_NAME PRINTER_MK25_NAME
+#define PRINTER_MMU_TYPE PRINTER_MK25_MMU2
+#define PRINTER_MMU_NAME PRINTER_MK25_MMU2_NAME
 #define FILAMENT_SIZE "1_75mm_MK25"
 #define NOZZLE_TYPE "E3Dv6full"
 
@@ -102,16 +107,21 @@
 // New XYZ calibration
 #define NEW_XYZCAL
 
+// Watchdog support
+#define WATCHDOG
+
 // Fan check
 #define FANCHECK
 
 // Safety timer
 #define SAFETYTIMER
 #define DEFAULT_SAFETYTIMER_TIME_MINS 30
+#define FARM_DEFAULT_SAFETYTIMER_TIME_ms (45*60*1000ul)
 
 // Filament sensor
-#define PAT9125
 #define FILAMENT_SENSOR
+#define PAT9125
+
 
 #define DEBUG_DCODE3
 
@@ -153,10 +163,18 @@
  *------------------------------------*/
 
 // Mintemps
-#define HEATER_0_MINTEMP 15
+#define HEATER_0_MINTEMP 30
 #define HEATER_1_MINTEMP 5
 #define HEATER_2_MINTEMP 5
-#define BED_MINTEMP 15
+#define HEATER_MINTEMP_DELAY 15000                // [ms] ! if changed, check maximal allowed value @ ShortTimer
+#if HEATER_MINTEMP_DELAY>USHRT_MAX
+#error "Check maximal allowed value @ ShortTimer (see HEATER_MINTEMP_DELAY definition)"
+#endif
+#define BED_MINTEMP 30
+#define BED_MINTEMP_DELAY 50000                   // [ms] ! if changed, check maximal allowed value @ ShortTimer
+#if BED_MINTEMP_DELAY>USHRT_MAX
+#error "Check maximal allowed value @ ShortTimer (see BED_MINTEMP_DELAY definition)"
+#endif
 
 // Maxtemps
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
@@ -280,10 +298,10 @@
 #define MBL_Z_STEP 0.01
 
 // Mesh definitions
-#define MESH_MIN_X 35
-#define MESH_MAX_X 238
+#define MESH_MIN_X 24
+#define MESH_MAX_X 228
 #define MESH_MIN_Y 6
-#define MESH_MAX_Y 202
+#define MESH_MAX_Y 210
 
 // Mesh upsample definition
 #define MESH_NUM_X_POINTS 7
@@ -292,8 +310,11 @@
 #define MESH_MEAS_NUM_X_POINTS 3
 #define MESH_MEAS_NUM_Y_POINTS 3
 
+// Maximum bed level correction value
+#define BED_ADJUSTMENT_UM_MAX 100
+
 #define MESH_HOME_Z_CALIB 0.2
-#define MESH_HOME_Z_SEARCH 5 //Z lift for homing, mesh bed leveling etc.
+#define MESH_HOME_Z_SEARCH 5.0f           // Z lift for homing, mesh bed leveling etc.
 
 #define X_PROBE_OFFSET_FROM_EXTRUDER 23     // Z probe to nozzle X offset: -left  +right
 #define Y_PROBE_OFFSET_FROM_EXTRUDER 5     // Z probe to nozzle Y offset: -front +behind
@@ -355,32 +376,28 @@
  *------------------------------------*/
 
 #define FARM_PREHEAT_HOTEND_TEMP 250
-#define FARM_PREHEAT_HPB_TEMP 40
-#define FARM_PREHEAT_FAN_SPEED 0
+#define FARM_PREHEAT_HPB_TEMP 80
 
 #define PLA_PREHEAT_HOTEND_TEMP 215
 #define PLA_PREHEAT_HPB_TEMP 60
-#define PLA_PREHEAT_FAN_SPEED 0
+
+#define ASA_PREHEAT_HOTEND_TEMP 260
+#define ASA_PREHEAT_HPB_TEMP 105
 
 #define ABS_PREHEAT_HOTEND_TEMP 255
 #define ABS_PREHEAT_HPB_TEMP 100
-#define ABS_PREHEAT_FAN_SPEED 0
 
 #define HIPS_PREHEAT_HOTEND_TEMP 220
 #define HIPS_PREHEAT_HPB_TEMP 100
-#define HIPS_PREHEAT_FAN_SPEED 0
 
 #define PP_PREHEAT_HOTEND_TEMP 254
 #define PP_PREHEAT_HPB_TEMP 100
-#define PP_PREHEAT_FAN_SPEED 0
 
 #define PET_PREHEAT_HOTEND_TEMP 230
 #define PET_PREHEAT_HPB_TEMP 85
-#define PET_PREHEAT_FAN_SPEED 0
 
 #define FLEX_PREHEAT_HOTEND_TEMP 240
 #define FLEX_PREHEAT_HPB_TEMP 50
-#define FLEX_PREHEAT_FAN_SPEED 0
 
 /*------------------------------------
  THERMISTORS SETTINGS
@@ -485,6 +502,10 @@
 //#define SUPPORT_VERBOSITY
 
 #define MMU_REQUIRED_FW_BUILDNR 132
-//#define MMU_DEBUG //print communication between MMU2 and printer on serial
+#define MMU_FORCE_STEALTH_MODE
+#define MMU_DEBUG //print communication between MMU2 and printer on serial
+//#define MMU_HAS_CUTTER
+
+#define MMU_IDLER_SENSOR_ATTEMPTS_NR 21 //max. number of attempts to load filament if first load failed; value for max bowden length and case when loading fails right at the beginning
 
 #endif //__CONFIGURATION_PRUSA_H

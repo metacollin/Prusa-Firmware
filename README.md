@@ -3,7 +3,6 @@
 **This is a work in progress.  The most recent release is always the firmware I am using on my own printer.**
 
 
-
 ## What is this?
 
 ***This project grew out of my own fairly modest tinkering of the stock Prusa MK3 firmware.  This firmware is by no means 'better' than Prusa Research's own stock firmware, nor will the average user gain any benefit from using it.***  

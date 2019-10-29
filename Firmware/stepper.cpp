@@ -92,10 +92,15 @@ bool abort_on_endstop_hit = false;
   int motor_current_setting_loud[3] = DEFAULT_PWM_MOTOR_CURRENT_LOUD;
 #endif
 
-static bool old_x_min_endstop=false;
+#if ( (defined(X_MAX_PIN) && (X_MAX_PIN > -1)) || defined(TMC2130_SG_HOMING) ) && !defined(DEBUG_DISABLE_XMAXLIMIT)
 static bool old_x_max_endstop=false;
-static bool old_y_min_endstop=false;
+#endif
+#if ( (defined(Y_MAX_PIN) && (Y_MAX_PIN > -1)) || defined(TMC2130_SG_HOMING) ) && !defined(DEBUG_DISABLE_YMAXLIMIT)
 static bool old_y_max_endstop=false;
+#endif
+
+static bool old_x_min_endstop=false;
+static bool old_y_min_endstop=false;
 static bool old_z_min_endstop=false;
 static bool old_z_max_endstop=false;
 
@@ -343,7 +348,7 @@ FORCE_INLINE unsigned short calc_timer(uint16_t step_rate) {
     timer = (unsigned short)pgm_read_word_near(table_address);
     timer -= (((unsigned short)pgm_read_word_near(table_address+2) * (unsigned char)(step_rate & 0x0007))>>3);
   }
-  if(timer < 100) { timer = 100; MYSERIAL.print(_N("Steprate too high: ")); MYSERIAL.println(step_rate); }//(20kHz this should never happen)////MSG_STEPPER_TOO_HIGH c=0 r=0
+  if(timer < 100) { timer = 100; MYSERIAL.print(_N("Steprate too high: ")); MYSERIAL.println(step_rate); }//(20kHz this should never happen)////MSG_STEPPER_TOO_HIGH
   return timer;
 }
 
@@ -1117,7 +1122,7 @@ void clear_current_adv_vars() {
 }
 
 #endif // LIN_ADVANCE
-      
+
 void st_init()
 {
 #ifdef TMC2130
@@ -1301,6 +1306,9 @@ void st_init()
       SET_OUTPUT(Z2_STEP_PIN);
       WRITE(Z2_STEP_PIN,INVERT_Z_STEP_PIN);
     #endif
+    #ifdef PSU_Delta
+      init_force_z();
+    #endif // PSU_Delta
     disable_z();
   #endif
   #if defined(E0_STEP_PIN) && (E0_STEP_PIN > -1)
@@ -1537,7 +1545,7 @@ void digitalPotWrite(int address, int value) // From Arduino DigitalPotControl e
     SPI.transfer(address); //  send in the address and value via SPI:
     SPI.transfer(value);
     digitalWrite(DIGIPOTSS_PIN,HIGH); // take the SS pin high to de-select the chip:
-    //delay(10);
+    //_delay(10);
 }
 #endif
 
@@ -1553,10 +1561,10 @@ void EEPROM_read_st(int pos, uint8_t* value, uint8_t size)
 
 
 void st_current_init() //Initialize Digipot Motor Current
-{  
-uint8_t SilentMode = eeprom_read_byte((uint8_t*)EEPROM_SILENT);
+{
+#ifdef MOTOR_CURRENT_PWM_XY_PIN
+  uint8_t SilentMode = eeprom_read_byte((uint8_t*)EEPROM_SILENT);
   SilentModeMenu = SilentMode;
-  #ifdef MOTOR_CURRENT_PWM_XY_PIN
     pinMode(MOTOR_CURRENT_PWM_XY_PIN, OUTPUT);
     pinMode(MOTOR_CURRENT_PWM_Z_PIN, OUTPUT);
     pinMode(MOTOR_CURRENT_PWM_E_PIN, OUTPUT);
@@ -1578,7 +1586,7 @@ uint8_t SilentMode = eeprom_read_byte((uint8_t*)EEPROM_SILENT);
     st_current_set(2, motor_current_setting[2]);
     //Set timer5 to 31khz so the PWM of the motor power is as constant as possible. (removes a buzzing noise)
     TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
-  #endif
+#endif
 }
 
 

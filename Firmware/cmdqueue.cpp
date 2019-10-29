@@ -22,8 +22,8 @@ int serial_count = 0;  //index of character read from serial line
 boolean comment_mode = false;
 char *strchr_pointer; // just a pointer to find chars in the command string like X, Y, Z, E, etc
 
-unsigned long TimeSent = millis();
-unsigned long TimeNow = millis();
+unsigned long TimeSent = _millis();
+unsigned long TimeNow = _millis();
 
 long gcode_N = 0;
 long gcode_LastN = 0;
@@ -94,7 +94,11 @@ void cmdqueue_reset()
     bufindr = 0;
     bufindw = 0;
     buflen = 0;
-    cmdbuffer_front_already_processed = false;
+
+	//commands are removed from command queue after process_command() function is finished
+	//reseting command queue and enqueing new commands during some (usually long running) command processing would cause that new commands are immediately removed from queue (or damaged)
+	//this will ensure that all new commands which are enqueued after cmdqueue reset, will be always executed
+    cmdbuffer_front_already_processed = true; 
 }
 
 // How long a string could be pushed to the front of the command queue?
@@ -220,9 +224,13 @@ void cmdqueue_dump_to_serial_single_line(int nr, const char *p)
     SERIAL_ECHOPGM("Entry nr: ");
     SERIAL_ECHO(nr);
     SERIAL_ECHOPGM(", type: ");
-    SERIAL_ECHO(int(*p));
+    int type = *p;
+    SERIAL_ECHO(type);
+    SERIAL_ECHOPGM(", size: ");
+    unsigned int size = *(unsigned int*)(p + 1);
+    SERIAL_ECHO(size);
     SERIAL_ECHOPGM(", cmd: ");
-    SERIAL_ECHO(p+1);  
+    SERIAL_ECHO(p + CMDHDRSIZE);
     SERIAL_ECHOLNPGM("");
 }
 
@@ -243,7 +251,7 @@ void cmdqueue_dump_to_serial()
             for (const char *p = cmdbuffer + bufindr; p < cmdbuffer + bufindw; ++ nr) {
                 cmdqueue_dump_to_serial_single_line(nr, p);
                 // Skip the command.
-                for (++p; *p != 0; ++ p);
+                for (p += CMDHDRSIZE; *p != 0; ++ p);
                 // Skip the gaps.
                 for (++p; p < cmdbuffer + bufindw && *p == 0; ++ p);
             }
@@ -251,14 +259,14 @@ void cmdqueue_dump_to_serial()
             for (const char *p = cmdbuffer + bufindr; p < cmdbuffer + sizeof(cmdbuffer); ++ nr) {
                 cmdqueue_dump_to_serial_single_line(nr, p);
                 // Skip the command.
-                for (++p; *p != 0; ++ p);
+                for (p += CMDHDRSIZE; *p != 0; ++ p);
                 // Skip the gaps.
                 for (++p; p < cmdbuffer + sizeof(cmdbuffer) && *p == 0; ++ p);
             }
             for (const char *p = cmdbuffer; p < cmdbuffer + bufindw; ++ nr) {
                 cmdqueue_dump_to_serial_single_line(nr, p);
                 // Skip the command.
-                for (++p; *p != 0; ++ p);
+                for (p += CMDHDRSIZE; *p != 0; ++ p);
                 // Skip the gaps.
                 for (++p; p < cmdbuffer + bufindw && *p == 0; ++ p);
             }
@@ -391,8 +399,8 @@ void get_command()
         MYSERIAL.write(serial_char); // for debuging serial line 2 in farm_mode
         selectedSerialPort = 1; 
     } */ //RP - removed
-      TimeSent = millis();
-      TimeNow = millis();
+      TimeSent = _millis();
+      TimeNow = _millis();
 
     if (serial_char < 0)
         // Ignore extended ASCII characters. These characters have no meaning in the G-code apart from the file names
@@ -425,7 +433,7 @@ void get_command()
 				  // M110 - set current line number.
 				  // Line numbers not sent in succession.
 				  SERIAL_ERROR_START;
-				  SERIAL_ERRORRPGM(_n("Line Number is not Last Line Number+1, Last Line: "));////MSG_ERR_LINE_NO c=0 r=0
+				  SERIAL_ERRORRPGM(_n("Line Number is not Last Line Number+1, Last Line: "));////MSG_ERR_LINE_NO
 				  SERIAL_ERRORLN(gcode_LastN);
 				  //Serial.println(gcode_N);
 				  FlushSerialRequestResend();
@@ -441,7 +449,7 @@ void get_command()
 					  checksum = checksum^(*p++);
 				  if (int(strtol(strchr_pointer+1, NULL, 10)) != int(checksum)) {
 					  SERIAL_ERROR_START;
-					  SERIAL_ERRORRPGM(_n("checksum mismatch, Last Line: "));////MSG_ERR_CHECKSUM_MISMATCH c=0 r=0
+					  SERIAL_ERRORRPGM(_n("checksum mismatch, Last Line: "));////MSG_ERR_CHECKSUM_MISMATCH
 					  SERIAL_ERRORLN(gcode_LastN);
 					  FlushSerialRequestResend();
 					  serial_count = 0;
@@ -453,7 +461,7 @@ void get_command()
 			  else
 			  {
 				  SERIAL_ERROR_START;
-				  SERIAL_ERRORRPGM(_n("No Checksum with line number, Last Line: "));////MSG_ERR_NO_CHECKSUM c=0 r=0
+				  SERIAL_ERRORRPGM(_n("No Checksum with line number, Last Line: "));////MSG_ERR_NO_CHECKSUM
 				  SERIAL_ERRORLN(gcode_LastN);
 				  FlushSerialRequestResend();
 				  serial_count = 0;
@@ -470,7 +478,7 @@ void get_command()
         {
 
             SERIAL_ERROR_START;
-            SERIAL_ERRORRPGM(_n("No Line Number with checksum, Last Line: "));////MSG_ERR_NO_LINENUMBER_WITH_CHECKSUM c=0 r=0
+            SERIAL_ERRORRPGM(_n("No Line Number with checksum, Last Line: "));////MSG_ERR_NO_LINENUMBER_WITH_CHECKSUM
             SERIAL_ERRORLN(gcode_LastN);
 			FlushSerialRequestResend();
             serial_count = 0;
@@ -527,7 +535,7 @@ void get_command()
   } // end of serial line processing loop
 
     if(farm_mode){
-        TimeNow = millis();
+        TimeNow = _millis();
         if ( ((TimeNow - TimeSent) > 800) && (serial_count > 0) ) {
             cmdbuffer[bufindw+serial_count+CMDHDRSIZE] = 0;
             
@@ -575,8 +583,8 @@ void get_command()
        serial_count >= (MAX_CMD_SIZE - 1) || n==-1)
     {
       if(card.eof()){
-        SERIAL_PROTOCOLLNRPGM(_n("Done printing file"));////MSG_FILE_PRINTED c=0 r=0
-        stoptime=millis();
+        SERIAL_PROTOCOLLNRPGM(_n("Done printing file"));////MSG_FILE_PRINTED
+        stoptime=_millis();
         char time[30];
         unsigned long t=(stoptime-starttime-pause_time)/1000;
         pause_time = 0;
@@ -594,7 +602,7 @@ void get_command()
         if (farm_mode)
         {
             prusa_statistics(6);
-            lcd_commands_type = LCD_COMMAND_FARM_MODE_CONFIRM;
+            lcd_commands_type = LcdCommands::FarmModeConfirm;
         }
 
       }

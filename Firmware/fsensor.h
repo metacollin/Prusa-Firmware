@@ -18,6 +18,7 @@ extern bool fsensor_oq_meassure_enabled;
 //! @name save restore printing
 //! @{
 extern void fsensor_stop_and_save_print(void);
+//! restore print - restore position and heatup to original temperature
 extern void fsensor_restore_print_and_continue(void);
 //! @}
 
@@ -35,14 +36,16 @@ extern bool fsensor_autoload_enabled;
 extern void fsensor_autoload_set(bool State);
 
 extern void fsensor_update(void);
-
+#ifdef PAT9125
 //! setup pin-change interrupt
 extern void fsensor_setup_interrupt(void);
 
 //! @name autoload support
 //! @{
+
 extern void fsensor_autoload_check_start(void);
 extern void fsensor_autoload_check_stop(void);
+#endif //PAT9125
 extern bool fsensor_check_autoload(void);
 //! @}
 
