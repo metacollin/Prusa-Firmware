@@ -1,6 +1,9 @@
 # Prusa Alternative Firmware
-### Currently tracking: 3.8.0
+### Currently tracking: 3.8.1 commit 2869
 **This is a work in progress.  The most recent release is always the firmware I am using on my own printer.**
+
+
+
 
 
 ## What is this?
@@ -141,3 +144,12 @@ Also, I have a heavily modified printer, so for my convenience, there is a #defi
 // ============================================================================
 
   ```
+
+
+## Tweaks/Features planned 
+### (to be finished sometime between now and the heat death of the universe)
+
+1. Spread-spectrum bed leveling (should more gracefully average out any error due to mechanical resonances) 
+2. Support for MK3S
+3. CLI macOS build system
+
