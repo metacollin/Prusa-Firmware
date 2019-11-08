@@ -7811,6 +7811,7 @@ Sigma_Exit:
         uint8_t axis = E_AXIS;
         uint16_t res = tmc2130_get_res(axis);
         tmc2130_set_res(axis, res_new);
+        cs.axis_ustep_resolution[E_AXIS] = res_new;
         if (res_new > res)
         {
           uint16_t fac = (res_new / res);
@@ -7834,6 +7835,7 @@ Sigma_Exit:
         uint8_t axis = X_AXIS;
         uint16_t res = tmc2130_get_res(axis);
         tmc2130_set_res(axis, res_new);
+        cs.axis_ustep_resolution[X_AXIS] = res_new;
         if (res_new > res)
         {
           uint16_t fac = (res_new / res);
@@ -7857,6 +7859,7 @@ Sigma_Exit:
         uint8_t axis = Y_AXIS;
         uint16_t res = tmc2130_get_res(axis);
         tmc2130_set_res(axis, res_new);
+        cs.axis_ustep_resolution[Y_AXIS] = res_new;
         if (res_new > res)
         {
           uint16_t fac = (res_new / res);
@@ -7880,6 +7883,7 @@ Sigma_Exit:
         uint8_t axis = Z_AXIS;
         uint16_t res = tmc2130_get_res(axis);
         tmc2130_set_res(axis, res_new);
+        cs.axis_ustep_resolution[Z_AXIS] = res_new;
         if (res_new > res)
         {
           uint16_t fac = (res_new / res);

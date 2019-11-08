@@ -1039,7 +1039,9 @@ inline bool find_bed_induction_sensor_point_z(float minimum_z, uint8_t n_iter, i
 				high_deviation_occured = true;
 				i = -1; 
 				z = 0;
+#ifdef ENHANCED_Z_LEVELING
                 mc = 0;
+#endif
 			}
 			else {
 				goto error;
