@@ -9,9 +9,6 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "io_atmega2560.h"
-
-#define BEEPER              84
 
 void timer0_init(void)
 {
@@ -134,16 +131,6 @@ void delay2(unsigned long ms)
 			start += 1000;
 		}
 	}
-}
-
-void tone2(__attribute__((unused)) uint8_t _pin, __attribute__((unused)) unsigned int frequency/*, unsigned long duration*/)
-{
-	PIN_SET(BEEPER);
-}
-
-void noTone2(__attribute__((unused)) uint8_t _pin)
-{
-	PIN_CLR(BEEPER);
 }
 
 #endif //SYSTEM_TIMER_2

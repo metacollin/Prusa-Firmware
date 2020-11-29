@@ -691,7 +691,7 @@ void tmc2130_wr_THIGH(uint8_t axis, uint32_t val32)
 
 uint8_t tmc2130_usteps2mres(uint16_t usteps)
 {
-	uint8_t mres = 8; while (mres && (usteps >>= 1)) mres--;
+	uint8_t mres = 8; while (usteps >>= 1) mres--;
 	return mres;
 }
 
@@ -898,15 +898,15 @@ void tmc2130_goto_step(uint8_t axis, uint8_t step, uint8_t dir, uint16_t delay_u
 	{
 		dir = tmc2130_get_inv(axis)?0:1;
 		int steps = (int)step - (int)(mscnt >> shift);
-		if (steps < 0)
-		{
-			dir ^= 1;
-			steps = -steps;
-		}
 		if (steps > static_cast<int>(cnt / 2))
 		{
 			dir ^= 1;
-			steps = cnt - steps;
+			steps = cnt - steps; // This can create a negative step value
+		}
+        if (steps < 0)
+		{
+			dir ^= 1;
+			steps = -steps;
 		}
 		cnt = steps;
 	}

@@ -2,6 +2,26 @@
 "[%.7s]Live adj. Z\x0avalue set, continue\x0aor start from zero?\x0a%cContinue%cReset"
 "[%.7s]Set valori\x0aComp. Z, continuare\x0ao iniziare da zero?\x0a%cContinua%cReset"
 
+#MSG_03_OR_OLDER c=18
+" 0.3 or older"
+" 0.3 o inferiore"
+
+# c=18
+"FS v0.3 or older"
+"FS 0.3 o inferiore"
+
+#MSG_IR_04_OR_NEWER c=18
+" 0.4 or newer"
+" 0.4 o superiore"
+
+# c=18
+"FS v0.4 or newer"
+"FS 0.4 o superiore"
+
+#MSG_IR_UNKNOWN c=18
+"unknown state"
+"stato sconosciuto"
+
 #MSG_IMPROVE_BED_OFFSET_AND_SKEW_LINE2 c=14
 " of 4"
 " su 4"
@@ -42,7 +62,11 @@
 "Ambient"
 "Ambiente"
 
-#MSG_PRESS c=20
+#MSG_AUTO c=6
+"Auto"
+"\x00"
+
+#MSG_PRESS c=20 r=2
 "and press the knob"
 "e cliccare manopola"
 
@@ -50,23 +74,15 @@
 "Are left and right Z~carriages all up?"
 "I carrelli Z sin/des sono altezza max?"
 
-#MSG_AUTO_DEPLETE_ON c=17 r=1
-"SpoolJoin    [on]"
-"\x00"
-
-#
-"SpoolJoin   [N/A]"
-"\x00"
-
-#MSG_AUTO_DEPLETE_OFF c=17 r=1
-"SpoolJoin   [off]"
-"\x00"
+#MSG_AUTO_DEPLETE c=17 r=1
+"SpoolJoin"
+""
 
 #MSG_AUTO_HOME
 "Auto home"
 "Trova origine"
 
-#MSG_AUTOLOAD_FILAMENT c=17
+#MSG_AUTOLOAD_FILAMENT c=18
 "AutoLoad filament"
 "Autocaric. filam."
 
@@ -88,7 +104,7 @@
 
 #MSG_SELFTEST_BEDHEATER
 "Bed / Heater"
-"Letto/Riscald."
+"Piano/Riscald."
 
 #MSG_BED_DONE
 "Bed done"
@@ -96,27 +112,39 @@
 
 #MSG_BED_HEATING
 "Bed Heating"
-"Riscald. letto"
+"Riscald. piano"
 
 #MSG_BED_CORRECTION_MENU
 "Bed level correct"
-"Correz. liv.letto"
+"Correz. liv.piano"
 
-#MSG_BED_LEVELING_FAILED_POINT_LOW c=20 r=4
+#MSG_BELTTEST c=17
+"Belt test        "
+"Test cinghie     "
+
+#MSG_BED_LEVELING_FAILED_POINT_LOW c=20 r=5
 "Bed leveling failed. Sensor didnt trigger. Debris on nozzle? Waiting for reset."
-"Livellamento letto fallito.NoRispSensore.Residui su ugello? In attesa di reset."
+"Livellamento piano fallito. Sensore KO? Residui su ugello? In attesa di reset."
+
+#MSG_BRIGHT c=6
+"Bright"
+"Chiaro"
+
+#MSG_BRIGHTNESS c=18
+"Brightness"
+"Luminosita'"
 
 #MSG_BED
 "Bed"
-"Letto"
+"Piano"
 
-#MSG_MENU_BELT_STATUS c=15 r=1
+#MSG_MENU_BELT_STATUS c=18
 "Belt status"
 "Stato cinghie"
 
 #MSG_RECOVER_PRINT c=20 r=2
 "Blackout occurred. Recover print?"
-"C'e stato un Blackout. Recuperare la stampa?"
+"Blackout rilevato. Recuperare la stampa?"
 
 #
 "Calibrating home"
@@ -174,21 +202,13 @@
 "Copy selected language?"
 "Copiare la lingua selezionata?"
 
-#MSG_CRASHDETECT_ON
-"Crash det.   [on]"
-"Rileva.crash [on]"
+#MSG_CRASHDETECT c=13
+"Crash det."
+"Rileva.crash"
 
 #
 "Choose a filament for the First Layer Calibration and select it in the on-screen menu."
 "Scegli un filamento per la calibrazione del primo strato e selezionalo nel menu sullo schermo."
-
-#MSG_CRASHDETECT_NA
-"Crash det.  [N/A]"
-"Rileva.crash[N/A]"
-
-#MSG_CRASHDETECT_OFF
-"Crash det.  [off]"
-"Rileva.crash[off]"
 
 #MSG_CRASH_DETECTED c=20 r=1
 "Crash detected."
@@ -216,27 +236,31 @@
 
 #MSG_BABYSTEP_Z_NOT_SET c=20 r=12
 "Distance between tip of the nozzle and the bed surface has not been set yet. Please follow the manual, chapter First steps, section First layer calibration."
-"Distanza tra la punta dell'ugello e la superficie del letto non ancora imposta. Si prega di seguire il manuale, capitolo Primi Passi, sezione Calibrazione primo layer."
+"Distanza tra la punta dell'ugello e la superficie del piano non ancora impostata. Si prega di seguire il manuale, capitolo Primi Passi, sezione Calibrazione primo strato."
+
+#MSG_FS_CONTINUE c=5
+"Cont."
+"\x00"
 
 #MSG_WIZARD_REPEAT_V2_CAL c=20 r=7
 "Do you want to repeat last step to readjust distance between nozzle and heatbed?"
 "Desideri ripetere l'ultimo passaggio per migliorare la distanza fra ugello e piatto?"
 
-#MSG_EXTRUDER_CORRECTION c=10
+#MSG_EXTRUDER_CORRECTION c=13
 "E-correct:"
 "Correzione-E:"
 
 #MSG_EJECT_FILAMENT c=17 r=1
 "Eject filament"
-"Espelli filamento "
+"Espelli filamento"
 
 #MSG_EJECTING_FILAMENT c=20 r=1
 "Ejecting filament"
-"Espellendo filamento "
+"Espellendo filamento"
 
-#MSG_SELFTEST_ENDSTOP_NOTHIT c=20 r=1
+#MSG_SELFTEST_ENDSTOP_NOTHIT c=20
 "Endstop not hit"
-"Finecorsa fuori portata"
+"Finec. fuori portata"
 
 #MSG_SELFTEST_ENDSTOP
 "Endstop"
@@ -248,11 +272,27 @@
 
 #MSG_STACK_ERROR c=20 r=4
 "Error - static memory has been overwritten"
-"Errore - la memoria statica e stata sovrascritta"
+"Errore - la memoria statica e' stata sovrascritta"
+
+#MSG_CUT_FILAMENT c=16
+"Cut filament"
+"Taglia filamento"
+
+#MSG_CUTTER c=9
+"Cutter"
+"Tagliatr."
+
+# c=18
+"Cutting filament"
+"Tagliando filam."
 
 #MSG_FSENS_NOT_RESPONDING c=20 r=4
 "ERROR: Filament sensor is not responding, please check connection."
 "ERRORE: il sensore filam. non risponde,Controllare conness."
+
+#MSG_DIM c=6
+"Dim"
+"Scuro"
 
 #MSG_ERROR
 "ERROR:"
@@ -262,7 +302,7 @@
 "Extruder fan:"
 "Ventola estr:"
 
-#MSG_INFO_EXTRUDER c=15 r=1
+#MSG_INFO_EXTRUDER c=18
 "Extruder info"
 "Info estrusore"
 
@@ -274,17 +314,9 @@
 "Fail stats MMU"
 "Stat.fall. MMU"
 
-#MSG_FSENS_AUTOLOAD_ON c=17 r=1
-"F. autoload  [on]"
-"Autocar.fil. [on]"
-
-#MSG_FSENS_AUTOLOAD_NA c=17 r=1
-"F. autoload [N/A]"
-"Autocar.fil.[N/A]"
-
-#MSG_FSENS_AUTOLOAD_OFF c=17 r=1
-"F. autoload [off]"
-"Autocar.fil.[off]"
+#MSG_FSENSOR_AUTOLOAD c=13
+"F. autoload"
+"Autocar.fil."
 
 #
 "Fail stats"
@@ -298,33 +330,21 @@
 "Fan test"
 "Test ventola"
 
-#MSG_FANS_CHECK_ON c=17 r=1
-"Fans check   [on]"
-"Control.vent [on]"
+#MSG_FANS_CHECK
+"Fans check"
+"Control.vent"
 
-#MSG_FANS_CHECK_OFF c=17 r=1
-"Fans check  [off]"
-"Control.vent[off]"
+#MSG_FSENSOR
+"Fil. sensor"
+"Sensore fil."
 
-#MSG_FSENSOR_ON
-"Fil. sensor  [on]"
-"Sensore fil. [on]"
-
-#MSG_FSENSOR_NA
-"Fil. sensor [N/A]"
-"Sensore fil.[N/A]"
-
-#MSG_FSENSOR_OFF
-"Fil. sensor [off]"
-"Sensore fil.[off]"
-
-#
+# c=14
 "Filam. runouts"
-"Filam. esauriti"
+"Fil. esauriti"
 
 #MSG_FILAMENT_CLEAN c=20 r=2
 "Filament extruding & with correct color?"
-"Filamento estruso & con il giusto colore?"
+"Filamento estruso e con colore corretto?"
 
 #MSG_NOT_LOADED c=19
 "Filament not loaded"
@@ -334,23 +354,27 @@
 "Filament sensor"
 "Sensore filam."
 
-#MSG_FILAMENT_USED c=19 r=1
+#MSG_FILAMENT_USED c=19
 "Filament used"
-"Filamento utilizzato"
+"Fil. utilizzato"
 
 #MSG_PRINT_TIME c=19 r=1
 "Print time"
 "Tempo di stampa"
 
-#MSG_FILE_INCOMPLETE c=20 r=2
+#MSG_FS_ACTION c=10
+"FS Action"
+"Azione FS"
+
+#MSG_FILE_INCOMPLETE c=20 r=3
 "File incomplete. Continue anyway?"
 "File incompleto. Continuare comunque?"
 
-#MSG_FINISHING_MOVEMENTS c=20 r=1
+#MSG_FINISHING_MOVEMENTS c=20
 "Finishing movements"
-"Finalizzando gli spostamenti"
+"Finaliz. spostamenti"
 
-#MSG_V2_CALIBRATION c=17 r=1
+#MSG_V2_CALIBRATION c=18
 "First layer cal."
 "Cal. primo strato"
 
@@ -360,7 +384,7 @@
 
 #
 "Fix the issue and then press button on MMU unit."
-"Risolvi il problema e quindi premi il bottone sull'unita MMU. "
+"Risolvere il problema e premere il bottone sull'unita MMU. "
 
 #MSG_FLOW
 "Flow"
@@ -416,7 +440,7 @@
 
 #MSG_CORRECTLY c=20
 "Changed correctly?"
-"Cambiato correttamente?"
+"Cambio corretto?"
 
 #MSG_SELFTEST_CHECK_BED c=20
 "Checking bed     "
@@ -476,11 +500,11 @@
 
 #MSG_WIZARD_FILAMENT_LOADED c=20 r=2
 "Is filament loaded?"
-"Il filamento e stato caricato?"
+"Il filamento e' stato caricato?"
 
 #MSG_STEEL_SHEET_CHECK c=20 r=2
 "Is steel sheet on heatbed?"
-"La piastra d'acciaio e sul piano riscaldato?"
+"Piastra d'acciaio su piano riscaldato?"
 
 #
 "Last print failures"
@@ -514,6 +538,10 @@
 "Live adjust Z"
 "Compensazione Z"
 
+# c=20 r=6
+"Insert the filament (do not load it) into the extruder and then press the knob."
+"Inserire filamento (senza caricarlo) nell'estrusore e premere la manopola."
+
 #MSG_LOAD_FILAMENT c=17
 "Load filament"
 "Carica filamento"
@@ -534,13 +562,21 @@
 "Load to nozzle"
 "Carica ugello"
 
-#MSG_M117_V2_CALIBRATION c=25 r=1
+#MSG_M117_V2_CALIBRATION c=25
 "M117 First layer cal."
-"M117 Calibrazione primo layer."
+"M117 Calibr. primo strato"
 
 #MSG_MAIN
 "Main"
 "Menu principale"
+
+#MSG_BL_HIGH c=12
+"Level Bright"
+"Liv. Chiaro"
+
+#MSG_BL_LOW c=12
+"Level Dimmed"
+"Liv. Scuro"
 
 #MSG_MEASURE_BED_REFERENCE_HEIGHT_LINE1 c=60
 "Measuring reference height of calibration point"
@@ -548,7 +584,7 @@
 
 #MSG_MESH_BED_LEVELING
 "Mesh Bed Leveling"
-"Livel. piatto"
+"Liv. grilia piano"
 
 #MSG_MMU_OK_RESUMING_POSITION c=20 r=4
 "MMU OK. Resuming position..."
@@ -578,13 +614,21 @@
 "MMU OK. Resuming..."
 "MMU OK. Riprendendo... "
 
-#MSG_STEALTH_MODE_OFF
-"Mode     [Normal]"
-"Mod.    [normale]"
+#MSG_MODE
+"Mode"
+"Mod."
 
-#MSG_SILENT_MODE_ON
-"Mode     [silent]"
-"Mod. [silenziosa]"
+# c=20 r=3
+"MK3 firmware detected on MK3S printer"
+"Firmware MK3 rilevato su stampante MK3S"
+
+#MSG_NORMAL
+"Normal"
+"Normale"
+
+#MSG_SILENT
+"Silent"
+"Silenzioso"
 
 #
 "MMU needs user attention."
@@ -594,17 +638,17 @@
 "MMU power fails"
 "Manc. corr. MMU"
 
-#MSG_STEALTH_MODE_ON
-"Mode    [Stealth]"
-"Mod. [silenziosa]"
+#MSG_STEALTH
+"Stealth"
+"Silenziosa"
 
-#MSG_AUTO_MODE_ON
-"Mode [auto power]"
-"Mod.       [auto]"
+#MSG_AUTO_POWER
+"Auto power"
+"Auto"
 
-#MSG_SILENT_MODE_OFF
-"Mode [high power]"
-"Mod.      [forte]"
+#MSG_HIGH_POWER
+"High power"
+"Forte"
 
 #
 "MMU2 connected"
@@ -638,9 +682,9 @@
 "No SD card"
 "Nessuna SD"
 
-#
+#MSG_NA
 "N/A"
-"\x00"
+"N/D"
 
 #MSG_NO
 "No"
@@ -670,7 +714,7 @@
 "Nozzle"
 "Ugello"
 
-#MSG_DEFAULT_SETTINGS_LOADED c=20 r=4
+#MSG_DEFAULT_SETTINGS_LOADED c=20 r=5
 "Old settings found. Default PID, Esteps etc. will be set."
 "Sono state trovate impostazioni vecchie. Verranno impostati i valori predefiniti di PID, Esteps etc."
 
@@ -702,7 +746,7 @@
 "PINDA Heating"
 "Riscaldamento PINDA"
 
-#MSG_PAPER c=20 r=8
+#MSG_PAPER c=20 r=10
 "Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off the printer immediately."
 "Posizionare un foglio sotto l'ugello durante la calibrazione dei primi 4 punti. In caso l'ugello muova il foglio spegnere subito la stampante."
 
@@ -774,6 +818,10 @@
 "Preheating nozzle. Please wait."
 "Preriscaldando l'ugello. Attendere prego."
 
+# c=14
+"PINDA"
+"\x00"
+
 #
 "Please upgrade."
 "Prego aggiornare."
@@ -781,6 +829,10 @@
 #MSG_PRESS_TO_PREHEAT c=20 r=4
 "Press knob to preheat nozzle and continue."
 "Premete la manopola per preriscaldare l'ugello e continuare."
+
+#MSG_FS_PAUSE c=5
+"Pause"
+"Pausa"
 
 #
 "Power failures"
@@ -790,13 +842,13 @@
 "Print aborted"
 "Stampa interrotta"
 
-#
+# c=20
 "Preheating to load"
-"Preriscaldamento per caricare"
+"Preriscald. carico"
 
-#
+# c=20
 "Preheating to unload"
-"Preriscaldamento per scaricare"
+"Preriscald. scarico"
 
 #MSG_SELFTEST_PRINT_FAN_SPEED c=18
 "Print fan:"
@@ -846,15 +898,23 @@
 "Rear side [um]"
 "Retro [um]"
 
-#MSG_RECOVERING_PRINT c=20 r=1
+# c=20 r=4
+"Please unload the filament first, then repeat this action."
+"Scaricare prima il filamento, poi ripetere l'operazione."
+
+# c=20 r=4
+"Please check the IR sensor connection, unload filament if present."
+"Controllare il collegamento al sensore e rimuovere il filamento."
+
+#MSG_RECOVERING_PRINT c=20
 "Recovering print    "
-"Recupero stampa"
+"Recupero stampa     "
 
-#MSG_REMOVE_OLD_FILAMENT c=20 r=4
+#MSG_REMOVE_OLD_FILAMENT c=20 r=5
 "Remove old filament and press the knob to start loading new filament."
-"Rimuovi il filamento precedente e premi la manopola per caricare il nuovo filamento. "
+"Rimuovi il filamento precedente e premi la manopola per caricare il nuovo filamento."
 
-#
+# c=20
 "Prusa i3 MK3S OK."
 "\x00"
 
@@ -870,7 +930,7 @@
 "Resume print"
 "Riprendi stampa"
 
-#MSG_RESUMING_PRINT c=20 r=1
+#MSG_RESUMING_PRINT c=20
 "Resuming print"
 "Riprendi stampa"
 
@@ -878,25 +938,21 @@
 "Right side[um]"
 "Destra [um]"
 
-#MSG_SECOND_SERIAL_ON c=17 r=1
-"RPi port     [on]"
-"Porta RPi    [on]"
-
-#MSG_SECOND_SERIAL_OFF c=17 r=1
-"RPi port    [off]"
-"Porta RPi   [off]"
+#MSG_RPI_PORT
+"RPi port"
+"Porta RPi"
 
 #MSG_WIZARD_RERUN c=20 r=7
 "Running Wizard will delete current calibration results and start from the beginning. Continue?"
 "Se avvi il Wizard perderai la calibrazione preesistente e dovrai ricominciare dall'inizio. Continuare?"
 
-#MSG_TOSHIBA_FLASH_AIR_COMPATIBILITY_OFF c=19 r=1
-"SD card  [normal]"
-"Mem. SD [normale]"
+#MSG_SD_CARD
+"SD card"
+"Mem. SD"
 
-#MSG_TOSHIBA_FLASH_AIR_COMPATIBILITY_ON c=19 r=1
-"SD card [flshAir]"
-"Mem. SD [flshAir]"
+#MSG_TOSHIBA_FLASH_AIR_COMPATIBILITY
+"FlashAir"
+"\x00"
 
 #
 "Right"
@@ -920,7 +976,7 @@
 
 #MSG_SELFTEST
 "Selftest         "
-"Autotest"
+"Autotest         "
 
 #MSG_SELFTEST_ERROR
 "Selftest error !"
@@ -940,13 +996,25 @@
 
 #MSG_SET_TEMPERATURE c=19 r=1
 "Set temperature:"
-"Imposta temperatura:"
+"Imposta temperatura"
+
+# c=20
+"Prusa i3 MK2.5 OK."
+"\x00"
+
+# c=20
+"Prusa i3 MK2.5S OK."
+"\x00"
+
+# c=20
+"Prusa i3 MK3 OK."
+"\x00"
 
 #MSG_SETTINGS
 "Settings"
 "Impostazioni"
 
-#MSG_SHOW_END_STOPS c=17 r=1
+#MSG_SHOW_END_STOPS c=18
 "Show end stops"
 "Stato finecorsa"
 
@@ -954,53 +1022,57 @@
 "Sensor state"
 "Stato sensore"
 
-#MSG_FILE_CNT c=20 r=4
+#MSG_FILE_CNT c=20 r=6
 "Some files will not be sorted. Max. No. of files in 1 folder for sorting is 100."
 "Alcuni file non saranno ordinati. Il numero massimo di file in una cartella e 100 perche siano ordinati."
 
-#MSG_SORT_NONE c=17 r=1
-"Sort       [none]"
-"Ordina  [nessuno]"
+#MSG_SORT
+"Sort"
+"Ordina"
 
-#MSG_SORT_TIME c=17 r=1
-"Sort       [time]"
-"Ordina    [cron.]"
+#MSG_NONE
+"None"
+"Nessuno"
+
+#MSG_SORT_TIME
+"Time"
+"Cron."
 
 #
 "Severe skew:"
 "Devia.grave:"
 
-#MSG_SORT_ALPHA c=17 r=1
-"Sort   [alphabet]"
-"Ordine [alfabeti]"
+#MSG_SORT_ALPHA
+"Alphabet"
+"Alfabeti"
 
 #MSG_SORTING c=20 r=1
 "Sorting files"
 "Ordinando i file"
 
-#MSG_SOUND_LOUD c=17 r=1
-"Sound      [loud]"
-"Suono     [forte]"
+#MSG_SOUND_LOUD
+"Loud"
+"Forte"
 
 #
 "Slight skew:"
 "Devia.lieve:"
 
-#MSG_SOUND_MUTE c=17 r=1
-"Sound      [mute]"
-"Suono      [mute]"
+#MSG_SOUND
+"Sound"
+"Suono"
+
+# c=7
+"Runouts"
+"Esaurim"
 
 #
 "Some problem encountered, Z-leveling enforced ..."
 "Sono stati rilevati problemi, avviato livellamento Z ..."
 
-#MSG_SOUND_ONCE c=17 r=1
-"Sound      [once]"
-"Suono   [singolo]"
-
-#MSG_SOUND_SILENT c=17 r=1
-"Sound    [silent]"
-"Suono[silenzioso]"
+#MSG_SOUND_ONCE
+"Once"
+"Singolo"
 
 #MSG_SPEED
 "Speed"
@@ -1038,21 +1110,13 @@
 "Select filament:"
 "Seleziona il filamento:"
 
-#MSG_TEMP_CALIBRATION c=20 r=1
-"Temp. cal.          "
-"Calib. temp. "
-
-#MSG_TEMP_CALIBRATION_ON c=20 r=1
-"Temp. cal.   [on]"
-"Calib. temp. [on]"
+#MSG_TEMP_CALIBRATION c=14
+"Temp. cal."
+"Calib. temp."
 
 #
 "Select temperature which matches your material."
 "Seleziona la temperatura appropriata per il tuo materiale."
-
-#MSG_TEMP_CALIBRATION_OFF c=20 r=1
-"Temp. cal.  [off]"
-"Calib. temp.[off]"
 
 #MSG_CALIBRATION_PINDA_MENU c=17 r=1
 "Temp. calibration"
@@ -1066,6 +1130,10 @@
 "Temperature calibration is finished and active. Temp. calibration can be disabled in menu Settings->Temp. cal."
 "Calibrazione temperatura completata e attiva. Puo essere disattivata dal menu Impostazioni ->Cal. Temp."
 
+# c=20 r=3
+"Sensor verified, remove the filament now."
+"Sensore verificato, rimuovere il filamento."
+
 #MSG_TEMPERATURE
 "Temperature"
 "\x00"
@@ -1074,7 +1142,7 @@
 "Temperatures"
 "Temperature"
 
-#MSG_FOLLOW_Z_CALIBRATION_FLOW c=20 r=4
+#MSG_FOLLOW_Z_CALIBRATION_FLOW c=20 r=9
 "There is still a need to make Z calibration. Please follow the manual, chapter First steps, section Calibration flow."
 "E ancora necessario effettuare la calibrazione Z. Segui il manuale, capitolo Primi Passi, sezione Sequenza di Calibrazione. "
 
@@ -1170,7 +1238,7 @@
 "Wizard"
 "\x00"
 
-#MSG_XYZ_DETAILS c=19 r=1
+#MSG_XYZ_DETAILS c=18
 "XYZ cal. details"
 "XYZ Cal. dettagli"
 
@@ -1194,7 +1262,11 @@
 "XYZ calibration all right. X/Y axes are slightly skewed. Good job!"
 "Calibrazion XYZ corretta. Assi X/Y leggermente storti. Ben fatto!"
 
-#
+#MSG_TIMEOUT c=12
+"Timeout"
+"\x00"
+
+#MSG_X_CORRECTION c=13
 "X-correct:"
 "Correzione-X:"
 
@@ -1216,7 +1288,7 @@
 
 #
 "XYZ calibration failed. Bed calibration point was not found."
-"Calibrazione XYZ fallita. Il punto di calibrazione sul letto non e' stato trovato."
+"Calibrazione XYZ fallita. Il punto di calibrazione sul piano non e' stato trovato."
 
 #
 "XYZ calibration failed. Front calibration points not reachable."
@@ -1232,14 +1304,22 @@
 
 #
 "The printer will start printing a zig-zag line. Rotate the knob until you reach the optimal height. Check the pictures in the handbook (Calibration chapter)."
-"\x00"
+"La stampante iniziera a stampare una linea a zig-zag. Gira la manopola fino a che non hai raggiungo l'altezza ottimale. Verifica con le immagini nel manuale (capitolo sulla calibrazione):"
 
-#
+# c=20 r=5
+"Verification failed, remove the filament and try again."
+"Verifica fallita, rimuovere il filamento e riprovare."
+
+#MSG_Y_CORRECTION c=13
 "Y-correct:"
 "Correzione-Y:"
 
 #MSG_OFF
-" [off]"
+"Off"
+"\x00"
+
+#MSG_ON
+"On"
 "\x00"
 
 #
@@ -1258,101 +1338,57 @@
 "FINDA:"
 "\x00"
 
-#
-"Firmware   [none]"
-"Firmware[nessuno]"
+#MSG_FIRMWARE
+"Firmware"
+"\x00"
 
-#
-"Firmware [strict]"
-"Firmware [esatto]"
+#MSG_STRICT
+"Strict"
+"Esatto"
 
-#
-"Firmware   [warn]"
-"Firmware [avviso]"
+#MSG_WARN
+"Warn"
+"Avviso"
 
 #
 "HW Setup"
-"Installazione HW"
+"Impostazioni HW"
 
 #
 "IR:"
 "\x00"
 
-#
-"Magnets comp.[N/A]"
-"Comp. Magneti[N/A]"
+#MSG_MAGNETS_COMP
+"Magnets comp."
+"Comp. Magneti"
 
-#
-"Magnets comp.[Off]"
-"Comp. Magneti[off]"
-
-#
-"Magnets comp. [On]"
-"Comp. Magneti [on]"
-
-#
-"Mesh         [3x3]"
-"Griglia      [3x3]"
-
-#
-"Mesh         [7x7]"
-"Griglia      [7x7]"
+#MSG_MESH
+"Mesh"
+"Griglia"
 
 #
 "Mesh bed leveling"
-"Mesh livel. letto"
+"Liv. griglia piano"
 
 #
 "MK3S firmware detected on MK3 printer"
 "Firmware MK3S rilevato su stampante MK3"
 
-#
-"MMU Mode [Normal]"
-"Modalita MMU [Normale]"
-
-#
-"MMU Mode[Stealth]"
-"Modalita MMU [Silenziosa]"
+#MSG_MMU_MODE
+"MMU Mode"
+"Mod. MMU"
 
 #
 "Mode change in progress ..."
 "Cambio modalita in corso ..."
 
-#
-"Model      [none]"
-"Modello [nessuno]"
+#MSG_MODEL
+"Model"
+"Modello"
 
-#
-"Model    [strict]"
-"Modello  [esatto]"
-
-#
-"Model      [warn]"
-"Modello  [avviso]"
-
-#
-"Nozzle d.  [0.25]"
-"Diam.Ugello[0.25]"
-
-#
-"Nozzle d.  [0.40]"
-"Diam.Ugello[0.40]"
-
-#
-"Nozzle d.  [0.60]"
-"Diam.Ugello[0.60]"
-
-#
-"Nozzle     [none]"
-"Ugello  [nessuno]"
-
-#
-"Nozzle   [strict]"
-"Ugello   [esatto]"
-
-#
-"Nozzle     [warn]"
-"Ugello   [avviso]"
+#MSG_NOZZLE_DIAMETER
+"Nozzle d."
+"Diam.Ugello"
 
 #
 "G-code sliced for a different level. Continue?"
@@ -1382,13 +1418,13 @@
 "PINDA:"
 "\x00"
 
-#
+# c=20
 "Preheating to cut"
-"Preriscaldamento per taglio"
+"Preriscalda. taglio"
 
-#
+# c=20
 "Preheating to eject"
-"Preriscaldamento per espulsione"
+"Preriscalda. espuls."
 
 #
 "Printer nozzle diameter differs from the G-code. Continue?"
@@ -1397,6 +1433,10 @@
 #
 "Printer nozzle diameter differs from the G-code. Please check the value in settings. Print cancelled."
 "Diametro ugello diverso dal G-Code. Controlla il valore nelle impostazioni. Stampa annullata."
+
+# c=20
+"%s level expected"
+"atteso livello %s"
 
 #
 "Rename"
@@ -1410,30 +1450,23 @@
 "Sensor info"
 "Info Sensore"
 
-#
+#MSG_SHEET c=10
 "Sheet"
 "Piano"
 
-#
-"Sound    [assist]"
-"Suono   [assist.]"
+#MSG_SOUND_BLIND
+"Assist"
+"Assist."
 
-#
+# c=18
 "Steel sheets"
 "Piani d'acciaio"
 
-#
+#MSG_Z_CORRECTION c=13
 "Z-correct:"
 "Correzione-Z:"
 
-#
-"Z-probe nr.    [1]"
-"Z-probe nr.    [1]"
+#MSG_Z_PROBE_NR
+"Z-probe nr."
+"Nr. Z-test"
 
-#
-"Z-probe nr.    [3]"
-"Z-probe nr.    [3]"
-
-#
-"Z-probe nr.    [5]"
-"Z-probe nr.    [5]"

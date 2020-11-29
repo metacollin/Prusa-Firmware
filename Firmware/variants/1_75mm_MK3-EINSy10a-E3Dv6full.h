@@ -27,7 +27,7 @@
 #define STEEL_SHEET
 #define HAS_SECOND_SERIAL_PORT
 //#define SKELESTRUDER_4_TO_1
-//#define MC_CUSTOM
+#define MC_CUSTOM
 
 // Uncomment the below for the E3D PT100 temperature sensor (with or without PT100 Amplifier)
 //#define E3D_PT100_EXTRUDER_WITH_AMP
@@ -41,7 +41,7 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-#ifdef SKELESTRUDER_4_TO_1
+#ifdef MC_CUSTOM
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
 #else
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
@@ -255,7 +255,7 @@
 
 
 // =========== PWM Chopper Config =======================================
-//                              {  X,   Y,   Z,   E}
+//                          {  X,   Y,   Z,   E}
 #define TMC2130_PWM_GRAD		{  2,   2,   4,   4} // [MC] Stock Values
 #define TMC2130_PWM_AMPL		{230, 235, 200, 240} // [MC] Stock Values
 #define TMC2130_PWM_AUTO 		{  1,   1,   1,   1} // [MC] Stock Values
@@ -263,7 +263,7 @@
 
 #define TMC2130_TPWMTHRS  0     
 // These two settings do nothing unless TMC2130_TPWMTHRS isn't 0.  
-#define TMC2130_TCOOLTHRS        430, 430, 500, 500  // [MC] Stock Values
+#define TMC2130_TCOOLTHRS    430, 430, 500, 500  // [MC] Stock Values
 #define TMC2130_THIGH     0  
 // ======================================================================
 
@@ -274,7 +274,7 @@
 #define TMC2130_SG_HOMING	1      // stallguard homing
 //                              {  X,   Y,   Z,   E}
 #define TMC2130_HOME_SG_THRS _sg(  3,   3,   4,   3) // [MC] Homing threshold
-#define TMC2130_SG_THRS 	 _sg(  3,   3,   4,   3) // [MC] Printing threshold
+#define TMC2130_SG_THRS 	   _sg(  3,   3,   4,   3) // [MC] Printing threshold
 // ============================================================================
 
 
@@ -291,22 +291,19 @@
 */
 #ifdef MC_CUSTOM
 //                              {  X,   Y,   Z,   E}
-#define TMC2130_CURRENTS_HOME 	{  8,  10,  30,  18}
-#define TMC2130_CURRENTS 		{ 16,  20,  35,  30}
-#define TMC2130_UNLOAD_CURRENT                   12
+#define TMC2130_CURRENTS_HOME 	{ 12,  16,  30,  18}
+#define TMC2130_CURRENTS 	    	{ 16,  20,  35,  30}
 #else
 //                              {  X,   Y,   Z,   E}
 #define TMC2130_CURRENTS_HOME 	{  8,  10,  20,  18}
-#define TMC2130_CURRENTS 		{ 16,  20,  35,  30}
-#define TMC2130_UNLOAD_CURRENT                   12
+#define TMC2130_CURRENTS 		    { 16,  20,  35,  30}
 #endif
 // =======================================================================
 
-
 // =========== SpreadCycle Config ===================
 //                                 X,   Y,   Z,   E
-#define TMC2130_TOFF 			   3,   3,   3,   3
-#define TMC2130_HSTART			   5,   5,   5,   5
+#define TMC2130_TOFF 			         3,   3,   3,   3
+#define TMC2130_HSTART			       5,   5,   5,   5
 #define TMC2130_HEND               1,   1,   1,   1
 #define TMC2130_BLANK_TIME         2,   2,   2,   2
 // =================================================
@@ -372,11 +369,14 @@
 #if HEATER_MINTEMP_DELAY>USHRT_MAX
 #error "Check maximal allowed value @ ShortTimer (see HEATER_MINTEMP_DELAY definition)"
 #endif
-#define BED_MINTEMP 15
+#define BED_MINTEMP 10
 #define BED_MINTEMP_DELAY 50000                   // [ms] ! if changed, check maximal allowed value @ ShortTimer
 #if BED_MINTEMP_DELAY>USHRT_MAX
 #error "Check maximal allowed value @ ShortTimer (see BED_MINTEMP_DELAY definition)"
 #endif
+#define DETECT_SUPERPINDA
+#define PINDA_MINTEMP BED_MINTEMP
+#define AMBIENT_MINTEMP -30
 
 // Maxtemps
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
@@ -386,7 +386,13 @@
 #endif
 #define HEATER_1_MAXTEMP 305
 #define HEATER_2_MAXTEMP 305
+
+#ifdef MC_CUSTOM
 #define BED_MAXTEMP 140
+#else 
+#define BED_MAXTEMP 125
+#endif
+#define AMBIENT_MAXTEMP 100
 
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
 // Define PID constants for extruder with PT100
@@ -579,6 +585,9 @@
 #define ASA_PREHEAT_HOTEND_TEMP 260
 #define ASA_PREHEAT_HPB_TEMP 105
 
+#define PC_PREHEAT_HOTEND_TEMP 275
+#define PC_PREHEAT_HPB_TEMP 110
+
 #define ABS_PREHEAT_HOTEND_TEMP 255
 #define ABS_PREHEAT_HPB_TEMP 100
 
@@ -701,6 +710,10 @@
 // The following example, 12 * (4 * 16 / 400) = 12 * 0.16mm = 1.92mm.
 //#define UVLO_Z_AXIS_SHIFT 1.92
 #define UVLO_Z_AXIS_SHIFT 0.64
+// When powered off during PP recovery, the Z axis position can still be re-adjusted. In this case
+// we just need to shift to the nearest fullstep, but we need a move which is at least
+// "dropsegments" steps long. All the above rules still need to apply.
+#define UVLO_TINY_Z_AXIS_SHIFT 0.16
 // If power panic occured, and the current temperature is higher then target temperature before interrupt minus this offset, print will be recovered automatically. 
 #define AUTOMATIC_UVLO_BED_TEMP_OFFSET 5 
 
@@ -713,7 +726,7 @@
 #define MMU_REQUIRED_FW_BUILDNR 83
 #define MMU_HWRESET
 #define MMU_DEBUG //print communication between MMU2 and printer on serial
-//#define MMU_HAS_CUTTER
+#define MMU_HAS_CUTTER
 #define MMU_IDLER_SENSOR_ATTEMPTS_NR 21 //max. number of attempts to load filament if first load failed; value for max bowden length and case when loading fails right at the beginning
 
 #endif //__CONFIGURATION_PRUSA_H
