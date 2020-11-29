@@ -27,7 +27,6 @@
 #define STEEL_SHEET
 #define HAS_SECOND_SERIAL_PORT
 //#define SKELESTRUDER_4_TO_1
-#define MC_CUSTOM
 
 // Uncomment the below for the E3D PT100 temperature sensor (with or without PT100 Amplifier)
 //#define E3D_PT100_EXTRUDER_WITH_AMP
@@ -41,11 +40,8 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-#ifdef MC_CUSTOM
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,560}
-#else
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
-#endif
+
 // Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
 #define Y_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
@@ -53,11 +49,7 @@
 
 // Direction inverting
 #define INVERT_X_DIR 1    // for Mendel set to 0, for Orca set to 1
-#ifdef MC_CUSTOM
-#define INVERT_Y_DIR 1    // for Mendel set to 1, for Orca set to 0
-#else
 #define INVERT_Y_DIR 0
-#endif
 #define INVERT_Z_DIR 1     // for Mendel set to 0, for Orca set to 1
 #define INVERT_E0_DIR 0   // for direct drive extruder v9 set to 1, for geared extruder set to 0
 #define INVERT_E1_DIR 0    // for direct drive extruder v9 set to 1, for geared extruder set to 0
@@ -72,13 +64,8 @@
 #define X_MAX_POS 255
 #define X_MIN_POS 0
 #define Y_MAX_POS 212.5
-#ifdef MC_CUSTOM
-#define Y_MIN_POS -8 //orig -4
-#define Z_MAX_POS 215
-#else
 #define Y_MIN_POS -4 //orig -4
 #define Z_MAX_POS 210
-#endif
 #define Z_MIN_POS 0.15
 
 // Canceled home position
@@ -91,19 +78,6 @@
 #define Z_PAUSE_LIFT 20
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-//#define ENHANCED_Z_LEVELING  
-
-// [MC]
-#ifdef ENHANCED_Z_LEVELING  
-#define HOMING_FEEDRATE {4500, 4500, 800, 0}  // Faster movement makes the position stallguard detects a stall much more consistent.
-											  // And it doesn't take nearly as long as a bonus
-#define Z_HOMING_ITERS 5					  // Improves bed leveling accuracy.  How many micrometers of error that was removed
-											  // by the extra iterations will be printed out on the serial console.  
-#else
-#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // Stock settings
-#define Z_HOMING_ITERS 3
-#endif
-// [MC]
 
 //#define DEFAULT_Y_OFFSET    4.f // Default distance of Y_MIN_POS point from endstop, when the printer is not calibrated.
 /**
@@ -158,11 +132,7 @@
 
 // Safety timer
 #define SAFETYTIMER
-#ifdef MC_CUSTOM
-#define DEFAULT_SAFETYTIMER_TIME_MINS 180
-#else
 #define DEFAULT_SAFETYTIMER_TIME_MINS 30
-#endif
 #define FARM_DEFAULT_SAFETYTIMER_TIME_ms (45*60*1000ul)
 
 // Filament sensor
@@ -181,8 +151,8 @@
 // the real limit is 15C (same as MINTEMP limit), this is because 15C is end of scale for both used thermistors (bed, heater)
 
 // [MC] We're all adults here.  Reduced to 5C.  
-#define MINTEMP_MINAMBIENT      15    // [MC] 25->15, equals 5C
-#define MINTEMP_MINAMBIENT_RAW  1007  // [MC] 978->1007, equals 5C. Raw value increases as the temperature decreases
+#define MINTEMP_MINAMBIENT      25   
+#define MINTEMP_MINAMBIENT_RAW  978
 
 #define DEBUG_DCODE3
 
@@ -289,15 +259,11 @@
    For value > 31, current in milliamps = ––––––––– * 0.943
                                               32
 */
-#ifdef MC_CUSTOM
-//                              {  X,   Y,   Z,   E}
-#define TMC2130_CURRENTS_HOME 	{ 12,  16,  30,  18}
-#define TMC2130_CURRENTS 	    	{ 16,  20,  35,  30}
-#else
+
 //                              {  X,   Y,   Z,   E}
 #define TMC2130_CURRENTS_HOME 	{  8,  10,  20,  18}
 #define TMC2130_CURRENTS 		    { 16,  20,  35,  30}
-#endif
+
 // =======================================================================
 
 // =========== SpreadCycle Config ===================
@@ -362,7 +328,7 @@
  *------------------------------------*/
 
 // Mintemps
-#define HEATER_0_MINTEMP 12
+#define HEATER_0_MINTEMP 10
 #define HEATER_1_MINTEMP 5
 #define HEATER_2_MINTEMP 5
 #define HEATER_MINTEMP_DELAY 15000                // [ms] ! if changed, check maximal allowed value @ ShortTimer
@@ -387,11 +353,7 @@
 #define HEATER_1_MAXTEMP 305
 #define HEATER_2_MAXTEMP 305
 
-#ifdef MC_CUSTOM
-#define BED_MAXTEMP 140
-#else 
 #define BED_MAXTEMP 125
-#endif
 #define AMBIENT_MAXTEMP 100
 
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
@@ -473,8 +435,8 @@
 #endif
 
 // temperature runaway
-#define TEMP_RUNAWAY_BED_HYSTERESIS 2
-#define TEMP_RUNAWAY_BED_TIMEOUT 1800
+#define TEMP_RUNAWAY_BED_HYSTERESIS 5
+#define TEMP_RUNAWAY_BED_TIMEOUT 360
 
 #define TEMP_RUNAWAY_EXTRUDER_HYSTERESIS 15
 #define TEMP_RUNAWAY_EXTRUDER_TIMEOUT 45
