@@ -144,6 +144,8 @@
 //#define BACKLASH_X
 //#define BACKLASH_Y
 
+#define Z_HOMING_ITERS 3
+#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
 
 // Minimum ambient temperature limit to start triggering MINTEMP errors [C]
 // this value is litlebit higher that real limit, because ambient termistor is on the board and is temperated from it,
