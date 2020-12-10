@@ -636,14 +636,14 @@ void crashdet_recover()
 
 void crashdet_cancel()
 {
-  saved_printing = false;
-  tmc2130_sg_stop_on_crash = true;
-  if (saved_printing_type == PRINTING_TYPE_SD) {
-    lcd_print_stop();
-  } else if (saved_printing_type == PRINTING_TYPE_USB) {
-    SERIAL_ECHOLNRPGM(MSG_OCTOPRINT_CANCEL); //for Octoprint: works the same as clicking "Abort" button in Octoprint GUI
-    SERIAL_PROTOCOLLNRPGM(MSG_OK);
-  }
+	saved_printing = false;
+	tmc2130_sg_stop_on_crash = true;
+	if (saved_printing_type == PRINTING_TYPE_SD) {
+		lcd_print_stop();
+	}else if(saved_printing_type == PRINTING_TYPE_USB){
+		SERIAL_ECHOLNRPGM(MSG_OCTOPRINT_CANCEL); //for Octoprint: works the same as clicking "Abort" button in Octoprint GUI
+		cmdqueue_reset();
+	}
 }
 
 #endif //TMC2130
@@ -2645,8 +2645,7 @@ void gcode_M105(uint8_t extruder)
     }
   }
 #endif
-  SERIAL_PROTOCOLLN("");
-  KEEPALIVE_STATE(NOT_BUSY);
+    SERIAL_PROTOCOLLN("");
 }
 
 #ifdef TMC2130
@@ -3696,14 +3695,12 @@ extern uint8_t st_backlash_y;
 void process_commands()
 {
 #ifdef FANCHECK
-  if (fan_check_error) {
-    if (fan_check_error == EFCE_DETECTED) {
-      fan_check_error = EFCE_REPORTED;
-      // SERIAL_PROTOCOLLNRPGM(MSG_OCTOPRINT_PAUSED);
-      lcd_pause_print();
-    } // otherwise it has already been reported, so just ignore further processing
-    return; //ignore usb stream. It is reenabled by selecting resume from the lcd.
-  }
+	if(fan_check_error == EFCE_DETECTED){
+		fan_check_error = EFCE_REPORTED;
+		// SERIAL_PROTOCOLLNRPGM(MSG_OCTOPRINT_PAUSED);
+		lcd_pause_print();
+		cmdqueue_serial_disabled = true;
+	}
 #endif
 
   if (!buflen) return; //empty command
@@ -5102,6 +5099,7 @@ case_G80:
 
           uint8_t mesh_point = 0; //index number of calibration point
 
+
           int XY_AXIS_FEEDRATE = homing_feedrate[X_AXIS] / 20;
           int Z_LIFT_FEEDRATE = homing_feedrate[Z_AXIS] / 40;
           bool has_z = is_bed_z_jitter_data_valid(); //checks if we have data from Z calibration (offsets of the Z heiths of the 8 calibration points from the first point)
@@ -5515,6 +5513,7 @@ case_G80:
 
         Currently has no effect.
       */
+    /*!
 
       // Prusa3D specific: Don't know what it is for, it is in V2Calibration.gcode
 
@@ -6418,8 +6417,8 @@ Sigma_Exit:
 
             SERIAL_PROTOCOLPGM("ok ");
             gcode_M105(extruder);
+            cmdqueue_pop_front(); //prevent an ok after the command since this command uses an ok at the beginning.
 
-            return;
             break;
           }
 
@@ -6909,7 +6908,7 @@ Sigma_Exit:
           case 117: // M117 display message
           starpos = (strchr(strchr_pointer + 5,'*'));
           if(starpos!=NULL)
-           (starpos)='\0';
+           *(starpos)='\0';
           lcd_setstatus(strchr_pointer + 5);
           break;*/
 
@@ -8018,6 +8017,7 @@ Sigma_Exit:
             if (!isPrintPaused)
             {
               st_synchronize();
+              ClearToSend(); //send OK even before the command finishes executing because we want to make sure it is not skipped because of cmdqueue_pop_front();
               cmdqueue_pop_front(); //trick because we want skip this command (M601) after restore
               lcd_pause_print();
             }
@@ -8538,6 +8538,27 @@ Sigma_Exit:
           }
           break;
 
+    /*!
+    ### M601 - Pause print <a href="https://reprap.org/wiki/G-code#M601:_Pause_print">M601: Pause print</a>
+    */
+    /*!
+    ### M125 - Pause print (TODO: not implemented)
+    */
+    /*!
+    ### M25 - Pause SD print <a href="https://reprap.org/wiki/G-code#M25:_Pause_SD_print">M25: Pause SD print</a>
+    */
+	case 25:
+	case 601:
+	{
+        if (!isPrintPaused)
+        {
+            st_synchronize();
+            ClearToSend(); //send OK even before the command finishes executing because we want to make sure it is not skipped because of cmdqueue_pop_front();
+            cmdqueue_pop_front(); //trick because we want skip this command (M601) after restore
+            lcd_pause_print();
+        }
+	}
+	break;
 
         case 922: // M922 Set TMC2130 homing currents - compliment to M912
           {
@@ -9496,9 +9517,9 @@ void FlushSerialRequestResend()
 // Execution of a command from a SD card will not be confirmed.
 void ClearToSend()
 {
-  previous_millis_cmd = _millis();
-  if ((CMDBUFFER_CURRENT_TYPE == CMDBUFFER_CURRENT_TYPE_USB) || (CMDBUFFER_CURRENT_TYPE == CMDBUFFER_CURRENT_TYPE_USB_WITH_LINENR))
-    SERIAL_PROTOCOLLNRPGM(MSG_OK);
+	previous_millis_cmd = _millis();
+	if (buflen && ((CMDBUFFER_CURRENT_TYPE == CMDBUFFER_CURRENT_TYPE_USB) || (CMDBUFFER_CURRENT_TYPE == CMDBUFFER_CURRENT_TYPE_USB_WITH_LINENR)))
+		SERIAL_PROTOCOLLNRPGM(MSG_OK);
 }
 
 #if MOTHERBOARD == BOARD_RAMBO_MINI_1_0 || MOTHERBOARD == BOARD_RAMBO_MINI_1_3
@@ -11699,62 +11720,10 @@ void restore_print_from_ram_and_continue(float e_move)
   if (fan_check_error == EFCE_FIXED) fan_check_error = EFCE_OK; //reenable serial stream processing if printing from usb
 #endif
 
-  //	for (int axis = X_AXIS; axis <= E_AXIS; axis++)
-  //	    current_position[axis] = st_get_position_mm(axis);
-  active_extruder = saved_active_extruder; //restore active_extruder
-  fanSpeed = saved_fanSpeed;
-  if (degTargetHotend(saved_active_extruder) != saved_extruder_temperature)
-  {
-    setTargetHotendSafe(saved_extruder_temperature, saved_active_extruder);
-    heating_status = 1;
-    wait_for_heater(_millis(), saved_active_extruder);
-    heating_status = 2;
-  }
-  axis_relative_modes ^= (-saved_extruder_relative_mode ^ axis_relative_modes) & E_AXIS_MASK;
-  float e = saved_pos[E_AXIS] - e_move;
-  plan_set_e_position(e);
-
-#ifdef FANCHECK
-  fans_check_enabled = false;
-#endif
-
-  //first move print head in XY to the saved position:
-  plan_buffer_line(saved_pos[X_AXIS], saved_pos[Y_AXIS], current_position[Z_AXIS], saved_pos[E_AXIS] - e_move, homing_feedrate[Z_AXIS] / 13, active_extruder);
-  //then move Z
-  plan_buffer_line(saved_pos[X_AXIS], saved_pos[Y_AXIS], saved_pos[Z_AXIS], saved_pos[E_AXIS] - e_move, homing_feedrate[Z_AXIS] / 13, active_extruder);
-  //and finaly unretract (35mm/s)
-  plan_buffer_line(saved_pos[X_AXIS], saved_pos[Y_AXIS], saved_pos[Z_AXIS], saved_pos[E_AXIS], FILAMENTCHANGE_RFEED, active_extruder);
-  st_synchronize();
-
-#ifdef FANCHECK
-  fans_check_enabled = true;
-#endif
-
-  // restore original feedrate/feedmultiply _after_ restoring the extruder position
-  feedrate = saved_feedrate2;
-  feedmultiply = saved_feedmultiply2;
-
-  memcpy(current_position, saved_pos, sizeof(saved_pos));
-  memcpy(destination, current_position, sizeof(destination));
-  if (saved_printing_type == PRINTING_TYPE_SD) { //was sd printing
-    card.setIndex(saved_sdpos);
-    sdpos_atomic = saved_sdpos;
-    card.sdprinting = true;
-  }
-  else if (saved_printing_type == PRINTING_TYPE_USB) { //was usb printing
-    gcode_LastN = saved_sdpos; //saved_sdpos was reused for storing line number when usb printing
-    serial_count = 0;
-    FlushSerialRequestResend();
-  }
-  else {
-    //not sd printing nor usb printing
-  }
-
-  SERIAL_PROTOCOLLNRPGM(MSG_OK); //dummy response because of octoprint is waiting for this
-  lcd_setstatuspgm(_T(WELCOME_MSG));
-  saved_printing_type = PRINTING_TYPE_NONE;
-  saved_printing = false;
-  waiting_inside_plan_buffer_line_print_aborted = true; //unroll the stack
+	lcd_setstatuspgm(_T(WELCOME_MSG));
+    saved_printing_type = PRINTING_TYPE_NONE;
+	saved_printing = false;
+    waiting_inside_plan_buffer_line_print_aborted = true; //unroll the stack
 }
 
 // Cancel the state related to a currently saved print
