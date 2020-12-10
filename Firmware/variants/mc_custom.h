@@ -9,11 +9,15 @@
 #undef INVERT_Y_DIR
 #define INVERT_Y_DIR 1
 
-#undef Y_MIN_POS
-#define Y_MIN_POS -12
 
-#undef Z_MAX_POS
-#define Z_MAX_POS 215
+#undef INVERT_E0_DIR
+#define INVERT_E0_DIR 1
+
+#undef Y_MIN_POS
+#define Y_MIN_POS -8
+
+//#undef Z_MAX_POS
+//#define Z_MAX_POS 215
 
 #undef DEFAULT_SAFETYTIMER_TIME_MINS
 #define DEFAULT_SAFETYTIMER_TIME_MINS 180
@@ -45,3 +49,18 @@
 
 #undef TEMP_RUNAWAY_EXTRUDER_TIMEOUT
 #define TEMP_RUNAWAY_EXTRUDER_TIMEOUT 180
+
+#undef HEATER_0_MAXTEMP
+#define HEATER_0_MAXTEMP 410
+
+#undef DEFAULT_Kp
+#undef DEFAULT_Ki
+#undef DEFAULT_Kd
+#define  DEFAULT_Kp 21.70
+#define  DEFAULT_Ki 1.60
+#define  DEFAULT_Kd 73.76
+
+#undef TEMP_SENSOR_0
+#define TEMP_SENSOR_0 247
+
+#undef FANCHECK

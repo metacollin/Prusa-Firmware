@@ -82,9 +82,9 @@ struct ring_buffer
   int tail;
 };
 
-//#if UART_PRESENT(SERIAL_PORT)
+#if UART_PRESENT(SERIAL_PORT)
   extern ring_buffer rx_buffer;
-//#endif
+#endif
 
 class MarlinSerial //: public Stream
 {
