@@ -26,7 +26,7 @@
 #define MOTHERBOARD BOARD_EINSY_1_0a
 #define STEEL_SHEET
 #define HAS_SECOND_SERIAL_PORT
-//#define SKELESTRUDER_4_TO_1
+
 
 // Uncomment the below for the E3D PT100 temperature sensor (with or without PT100 Amplifier)
 #define E3D_PT100_EXTRUDER_WITH_AMP
@@ -40,7 +40,7 @@
  *------------------------------------*/
 
 // Steps per unit {X,Y,Z,E}
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,528}
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {100,100,3200/8,280}
 
 // Endstop inverting
 #define X_MIN_ENDSTOP_INVERTING 0 // set to 1 to invert the logic of the endstop.
@@ -49,9 +49,9 @@
 
 // Direction inverting
 #define INVERT_X_DIR 1    // for Mendel set to 0, for Orca set to 1
-#define INVERT_Y_DIR 1
+#define INVERT_Y_DIR 0    // for Mendel set to 1, for Orca set to 0
 #define INVERT_Z_DIR 1     // for Mendel set to 0, for Orca set to 1
-#define INVERT_E0_DIR 1   // for direct drive extruder v9 set to 1, for geared extruder set to 0
+#define INVERT_E0_DIR 0   // for direct drive extruder v9 set to 1, for geared extruder set to 0
 #define INVERT_E1_DIR 0    // for direct drive extruder v9 set to 1, for geared extruder set to 0
 #define INVERT_E2_DIR 0   // for direct drive extruder v9 set to 1, for geared extruder set to 0
 
@@ -62,9 +62,9 @@
 
 // Travel limits after homing
 #define X_MAX_POS 255
-#define X_MIN_POS 5
+#define X_MIN_POS 0
 #define Y_MAX_POS 212.5
-#define Y_MIN_POS -8 //orig -4
+#define Y_MIN_POS -4 //orig -4
 #define Z_MAX_POS 210
 #define Z_MIN_POS 0.15
 
@@ -78,6 +78,19 @@
 #define Z_PAUSE_LIFT 20
 
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
+//#define ENHANCED_Z_LEVELING  
+
+// [MC]
+#ifdef ENHANCED_Z_LEVELING  
+#define HOMING_FEEDRATE {4500, 4500, 800, 0}  // Faster movement makes the position stallguard detects a stall much more consistent.
+											  // And it doesn't take nearly as long as a bonus
+#define Z_HOMING_ITERS 7					  // Improves bed leveling accuracy.  How many micrometers of error that was removed
+											  // by the extra iterations will be printed out on the serial console.  
+#else
+#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // Stock settings
+#define Z_HOMING_ITERS 3
+#endif
+// [MC]
 
 //#define DEFAULT_Y_OFFSET    4.f // Default distance of Y_MIN_POS point from endstop, when the printer is not calibrated.
 /**
@@ -125,14 +138,14 @@
 #define WATCHDOG
 
 // Power panic
-//#define UVLO_SUPPORT
+#define UVLO_SUPPORT
 
 // Fan check
-//#define FANCHECK
+#define FANCHECK
 
 // Safety timer
 #define SAFETYTIMER
-#define DEFAULT_SAFETYTIMER_TIME_MINS 180
+#define DEFAULT_SAFETYTIMER_TIME_MINS 30
 #define FARM_DEFAULT_SAFETYTIMER_TIME_ms (45*60*1000ul)
 
 // Filament sensor
@@ -144,8 +157,6 @@
 //#define BACKLASH_X
 //#define BACKLASH_Y
 
-#define Z_HOMING_ITERS 3
-#define HOMING_FEEDRATE {3000, 3000, 800, 0}  // set the homing speeds (mm/min) // 3000 is also valid for stallGuard homing. Valid range: 2200 - 3000
 
 // Minimum ambient temperature limit to start triggering MINTEMP errors [C]
 // this value is litlebit higher that real limit, because ambient termistor is on the board and is temperated from it,
@@ -153,8 +164,8 @@
 // the real limit is 15C (same as MINTEMP limit), this is because 15C is end of scale for both used thermistors (bed, heater)
 
 // [MC] We're all adults here.  Reduced to 5C.  
-#define MINTEMP_MINAMBIENT      15   
-#define MINTEMP_MINAMBIENT_RAW  1007
+#define MINTEMP_MINAMBIENT      15    // [MC] 25->15, equals 5C
+#define MINTEMP_MINAMBIENT_RAW  1007  // [MC] 978->1007, equals 5C. Raw value increases as the temperature decreases
 
 #define DEBUG_DCODE3
 
@@ -213,21 +224,14 @@
 // ==========================================================================================
 
 // =========== Microstepping Resolution ===========================================
-
-#ifdef SKELESTRUDER_4_TO_1
 //                              {  X,   Y,   Z,   E}
-#define TMC2130_USTEPS   		  16,  16,  16,   8  // Microstepping mode
-#define TMC2130_STEP_INTERP     {  1,   1,   1,   1} // 256 microstep interpolation
-#else
-//                              {  X,   Y,   Z,   E}
-#define TMC2130_USTEPS   		  16,  16,  16,  16  // Microstepping mode
-#define TMC2130_STEP_INTERP     {  1,   1,   1,   1} // 256 microstep interpolation
-#endif
+#define TMC2130_USTEPS   		  16,  16,  16,  32  // Microstepping mode
+#define TMC2130_STEP_INTERP     {  1,   1,   1,   1} // 256 microstep interpolation 
 // ================================================================================
 
 
 // =========== PWM Chopper Config =======================================
-//                          {  X,   Y,   Z,   E}
+//                              {  X,   Y,   Z,   E}
 #define TMC2130_PWM_GRAD		{  2,   2,   4,   4} // [MC] Stock Values
 #define TMC2130_PWM_AMPL		{230, 235, 200, 240} // [MC] Stock Values
 #define TMC2130_PWM_AUTO 		{  1,   1,   1,   1} // [MC] Stock Values
@@ -235,7 +239,7 @@
 
 #define TMC2130_TPWMTHRS  0     
 // These two settings do nothing unless TMC2130_TPWMTHRS isn't 0.  
-#define TMC2130_TCOOLTHRS    430, 430, 500, 500  // [MC] Stock Values
+#define TMC2130_TCOOLTHRS        430, 430, 500, 500  // [MC] Stock Values
 #define TMC2130_THIGH     0  
 // ======================================================================
 
@@ -246,7 +250,7 @@
 #define TMC2130_SG_HOMING	1      // stallguard homing
 //                              {  X,   Y,   Z,   E}
 #define TMC2130_HOME_SG_THRS _sg(  3,   3,   4,   3) // [MC] Homing threshold
-#define TMC2130_SG_THRS 	   _sg(  3,   3,   4,   3) // [MC] Printing threshold
+#define TMC2130_SG_THRS 	 _sg(  3,   3,   4,   3) // [MC] Printing threshold
 // ============================================================================
 
 
@@ -261,17 +265,17 @@
    For value > 31, current in milliamps = ––––––––– * 0.943
                                               32
 */
-
 //                              {  X,   Y,   Z,   E}
-#define TMC2130_CURRENTS_HOME 	{  12,  24,  35,  18}
-#define TMC2130_CURRENTS 		    { 16,  20,  35,  25}
-
+#define TMC2130_CURRENTS_HOME 	{  8,  10,  20,  18}
+#define TMC2130_CURRENTS 		{ 16,  20,  35,  30}
+#define TMC2130_UNLOAD_CURRENT                   12
 // =======================================================================
+
 
 // =========== SpreadCycle Config ===================
 //                                 X,   Y,   Z,   E
-#define TMC2130_TOFF 			         3,   3,   3,   3
-#define TMC2130_HSTART			       5,   5,   5,   5
+#define TMC2130_TOFF 			   3,   3,   3,   3
+#define TMC2130_HSTART			   5,   5,   5,   5
 #define TMC2130_HEND               1,   1,   1,   1
 #define TMC2130_BLANK_TIME         2,   2,   2,   2
 // =================================================
@@ -330,21 +334,18 @@
  *------------------------------------*/
 
 // Mintemps
-#define HEATER_0_MINTEMP 10
+#define HEATER_0_MINTEMP 12
 #define HEATER_1_MINTEMP 5
 #define HEATER_2_MINTEMP 5
 #define HEATER_MINTEMP_DELAY 15000                // [ms] ! if changed, check maximal allowed value @ ShortTimer
 #if HEATER_MINTEMP_DELAY>USHRT_MAX
 #error "Check maximal allowed value @ ShortTimer (see HEATER_MINTEMP_DELAY definition)"
 #endif
-#define BED_MINTEMP 10
+#define BED_MINTEMP 15
 #define BED_MINTEMP_DELAY 50000                   // [ms] ! if changed, check maximal allowed value @ ShortTimer
 #if BED_MINTEMP_DELAY>USHRT_MAX
 #error "Check maximal allowed value @ ShortTimer (see BED_MINTEMP_DELAY definition)"
 #endif
-#define DETECT_SUPERPINDA
-#define PINDA_MINTEMP BED_MINTEMP
-#define AMBIENT_MINTEMP -30
 
 // Maxtemps
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
@@ -354,9 +355,7 @@
 #endif
 #define HEATER_1_MAXTEMP 305
 #define HEATER_2_MAXTEMP 305
-
 #define BED_MAXTEMP 140
-#define AMBIENT_MAXTEMP 100
 
 #if defined(E3D_PT100_EXTRUDER_WITH_AMP) || defined(E3D_PT100_EXTRUDER_NO_AMP)
 // Define PID constants for extruder with PT100
@@ -437,11 +436,11 @@
 #endif
 
 // temperature runaway
-#define TEMP_RUNAWAY_BED_HYSTERESIS 5
+#define TEMP_RUNAWAY_BED_HYSTERESIS 2
 #define TEMP_RUNAWAY_BED_TIMEOUT 1800
 
 #define TEMP_RUNAWAY_EXTRUDER_HYSTERESIS 15
-#define TEMP_RUNAWAY_EXTRUDER_TIMEOUT 180
+#define TEMP_RUNAWAY_EXTRUDER_TIMEOUT 45
 
 /*------------------------------------
  MOTOR CURRENT SETTINGS
@@ -548,9 +547,6 @@
 
 #define ASA_PREHEAT_HOTEND_TEMP 260
 #define ASA_PREHEAT_HPB_TEMP 105
-
-#define PC_PREHEAT_HOTEND_TEMP 275
-#define PC_PREHEAT_HPB_TEMP 110
 
 #define ABS_PREHEAT_HOTEND_TEMP 255
 #define ABS_PREHEAT_HPB_TEMP 100
@@ -674,10 +670,6 @@
 // The following example, 12 * (4 * 16 / 400) = 12 * 0.16mm = 1.92mm.
 //#define UVLO_Z_AXIS_SHIFT 1.92
 #define UVLO_Z_AXIS_SHIFT 0.64
-// When powered off during PP recovery, the Z axis position can still be re-adjusted. In this case
-// we just need to shift to the nearest fullstep, but we need a move which is at least
-// "dropsegments" steps long. All the above rules still need to apply.
-#define UVLO_TINY_Z_AXIS_SHIFT 0.16
 // If power panic occured, and the current temperature is higher then target temperature before interrupt minus this offset, print will be recovered automatically. 
 #define AUTOMATIC_UVLO_BED_TEMP_OFFSET 5 
 
@@ -690,7 +682,7 @@
 #define MMU_REQUIRED_FW_BUILDNR 83
 #define MMU_HWRESET
 #define MMU_DEBUG //print communication between MMU2 and printer on serial
-#define MMU_HAS_CUTTER
+//#define MMU_HAS_CUTTER
 #define MMU_IDLER_SENSOR_ATTEMPTS_NR 21 //max. number of attempts to load filament if first load failed; value for max bowden length and case when loading fails right at the beginning
 
 #endif //__CONFIGURATION_PRUSA_H

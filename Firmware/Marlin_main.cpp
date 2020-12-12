@@ -5518,7 +5518,7 @@ case_G80:
       // Prusa3D specific: Don't know what it is for, it is in V2Calibration.gcode
 
       case 88:
-        break;
+        break;*/
 
 
 #endif  // ENABLE_MESH_BED_LEVELING
@@ -6886,12 +6886,12 @@ Sigma_Exit:
             SERIAL_ECHOPGM(STRINGIFY(EXTRUDERS));
             SERIAL_ECHOPGM(" UUID:");
             SERIAL_ECHOLNPGM(MACHINE_UUID);
-          }
+          
 
 #ifdef EXTENDED_CAPABILITIES_REPORT
           extended_capabilities_report();
 #endif //EXTENDED_CAPABILITIES_REPORT
-
+}
           break;
 
         /*!
@@ -8538,27 +8538,7 @@ Sigma_Exit:
           }
           break;
 
-    /*!
-    ### M601 - Pause print <a href="https://reprap.org/wiki/G-code#M601:_Pause_print">M601: Pause print</a>
-    */
-    /*!
-    ### M125 - Pause print (TODO: not implemented)
-    */
-    /*!
-    ### M25 - Pause SD print <a href="https://reprap.org/wiki/G-code#M25:_Pause_SD_print">M25: Pause SD print</a>
-    */
-	case 25:
-	case 601:
-	{
-        if (!isPrintPaused)
-        {
-            st_synchronize();
-            ClearToSend(); //send OK even before the command finishes executing because we want to make sure it is not skipped because of cmdqueue_pop_front();
-            cmdqueue_pop_front(); //trick because we want skip this command (M601) after restore
-            lcd_pause_print();
-        }
-	}
-	break;
+   
 
         case 922: // M922 Set TMC2130 homing currents - compliment to M912
           {
