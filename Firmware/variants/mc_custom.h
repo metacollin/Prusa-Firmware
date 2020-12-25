@@ -1,3 +1,7 @@
+// NOTE:  These are settings for my [metacollin's] custom MK3 which has a lot of weird stuff going on.
+// This file is here for my own convenience, but don't try to use this config - it won't work with
+// any off-the-shelf prusa printer
+
 #include "variants/1_75mm_MK3-EINSy10a-E3Dv6full.h"
 
 #undef  DEFAULT_AXIS_STEPS_PER_UNIT

@@ -1,47 +1,47 @@
 /* -*- c++ -*- */
 /**
-   @file
-*/
+ * @file
+ */
 
 /**
-   @mainpage Reprap 3D printer firmware based on Sprinter and grbl.
-
-   @section intro_sec Introduction
-
-   This firmware is a mashup between Sprinter and grbl.
-   https://github.com/kliment/Sprinter
-   https://github.com/simen/grbl/tree
-
-   It has preliminary support for Matthew Roberts advance algorithm
-   http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
-
-   Prusa Research s.r.o. https://www.prusa3d.cz
-
-   @section copyright_sec Copyright
-
-   Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-   @section notes_sec Notes
-
+ * @mainpage Reprap 3D printer firmware based on Sprinter and grbl.
+ *
+ * @section intro_sec Introduction
+ *
+ * This firmware is a mashup between Sprinter and grbl.
+ * https://github.com/kliment/Sprinter
+ * https://github.com/simen/grbl/tree
+ *
+ * It has preliminary support for Matthew Roberts advance algorithm
+ * http://reprap.org/pipermail/reprap-dev/2011-May/003323.html
+ *
+ * Prusa Research s.r.o. https://www.prusa3d.cz
+ *
+ * @section copyright_sec Copyright
+ *
+ * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @section notes_sec Notes
+ *
  * * Do not create static objects in global functions.
-     Otherwise constructor guard against concurrent calls is generated costing
-     about 8B RAM and 14B flash.
-
-
-*/
+ *   Otherwise constructor guard against concurrent calls is generated costing
+ *   about 8B RAM and 14B flash.
+ *
+ *
+ */
 
 //-//
 #include "Configuration.h"
@@ -52,14 +52,14 @@
 
 #ifdef ENABLE_AUTO_BED_LEVELING
 #include "vector_3.h"
-#ifdef AUTO_BED_LEVELING_GRID
-#include "qr_solve.h"
-#endif
+  #ifdef AUTO_BED_LEVELING_GRID
+    #include "qr_solve.h"
+  #endif
 #endif // ENABLE_AUTO_BED_LEVELING
 
 #ifdef MESH_BED_LEVELING
-#include "mesh_bed_leveling.h"
-#include "mesh_bed_calibration.h"
+  #include "mesh_bed_leveling.h"
+  #include "mesh_bed_calibration.h"
 #endif
 
 #include "printers.h"
@@ -143,7 +143,7 @@
 //Macro for print fan speed
 #define FAN_PULSE_WIDTH_LIMIT ((fanSpeed > 100) ? 3 : 4) //time in ms
 
-//filament types
+//filament types 
 #define FILAMENT_DEFAULT 0
 #define FILAMENT_FLEX 1
 #define FILAMENT_PVA 2
@@ -182,23 +182,23 @@ float homing_feedrate[] = HOMING_FEEDRATE;
 //thus bit operations like shifting and masking may stop working and will be very hard to fix.
 uint8_t axis_relative_modes = 0;
 
-int feedmultiply = 100; //100->1 200->2
-int extrudemultiply = 100; //100->1 200->2
+int feedmultiply=100; //100->1 200->2
+int extrudemultiply=100; //100->1 200->2
 int extruder_multiply[EXTRUDERS] = {100
-#if EXTRUDERS > 1
-                                    , 100
-#if EXTRUDERS > 2
-                                    , 100
-#endif
-#endif
-                                   };
+  #if EXTRUDERS > 1
+    , 100
+    #if EXTRUDERS > 2
+      , 100
+    #endif
+  #endif
+};
 
 int bowden_length[4] = {385, 385, 385, 385};
 
 bool is_usb_printing = false;
 bool homing_flag = false;
 
-unsigned long kicktime = _millis() + 100000;
+unsigned long kicktime = _millis()+100000;
 
 unsigned int  usb_printing_counter;
 
@@ -239,13 +239,13 @@ bool sortAlpha = false;
 
 
 float extruder_multiplier[EXTRUDERS] = {1.0
-#if EXTRUDERS > 1
-                                        , 1.0
-#if EXTRUDERS > 2
-                                        , 1.0
-#endif
-#endif
-                                       };
+  #if EXTRUDERS > 1
+    , 1.0
+    #if EXTRUDERS > 2
+      , 1.0
+    #endif
+  #endif
+};
 
 float current_position[NUM_AXIS] = { 0.0, 0.0, 0.0, 0.0 };
 //shortcuts for more readable code
@@ -260,7 +260,7 @@ bool axis_known_position[3] = {false, false, false};
 
 // Extruder offset
 #if EXTRUDERS > 1
-#define NUM_EXTRUDER_OFFSETS 2 // only in XY plane
+  #define NUM_EXTRUDER_OFFSETS 2 // only in XY plane
 float extruder_offset[NUM_EXTRUDER_OFFSETS][EXTRUDERS] = {
 #if defined(EXTRUDER_OFFSET_X) && defined(EXTRUDER_OFFSET_Y)
   EXTRUDER_OFFSET_X, EXTRUDER_OFFSET_Y
@@ -269,35 +269,35 @@ float extruder_offset[NUM_EXTRUDER_OFFSETS][EXTRUDERS] = {
 #endif
 
 uint8_t active_extruder = 0;
-int fanSpeed = 0;
+int fanSpeed=0;
 
 #ifdef FWRETRACT
-bool retracted[EXTRUDERS] = {false
-#if EXTRUDERS > 1
-                             , false
-#if EXTRUDERS > 2
-                             , false
-#endif
-#endif
-                            };
-bool retracted_swap[EXTRUDERS] = {false
-#if EXTRUDERS > 1
-                                  , false
-#if EXTRUDERS > 2
-                                  , false
-#endif
-#endif
-                                 };
+  bool retracted[EXTRUDERS]={false
+    #if EXTRUDERS > 1
+    , false
+     #if EXTRUDERS > 2
+      , false
+     #endif
+  #endif
+  };
+  bool retracted_swap[EXTRUDERS]={false
+    #if EXTRUDERS > 1
+    , false
+     #if EXTRUDERS > 2
+      , false
+     #endif
+  #endif
+  };
 
-float retract_length_swap = RETRACT_LENGTH_SWAP;
-float retract_recover_length_swap = RETRACT_RECOVER_LENGTH_SWAP;
+  float retract_length_swap = RETRACT_LENGTH_SWAP;
+  float retract_recover_length_swap = RETRACT_RECOVER_LENGTH_SWAP;
 #endif
 
-#ifdef PS_DEFAULT_OFF
-bool powersupply = false;
-#else
-bool powersupply = true;
-#endif
+  #ifdef PS_DEFAULT_OFF
+    bool powersupply = false;
+  #else
+      bool powersupply = true;
+  #endif
 
 bool cancel_heatup = false ;
 
@@ -315,7 +315,7 @@ uint8_t saved_filament_type;
 #define SAVED_TARGET_UNSET (X_MIN_POS-1)
 float saved_target[NUM_AXIS] = {SAVED_TARGET_UNSET, 0, 0, 0};
 
-// save/restore printing in case that mmu was not responding
+// save/restore printing in case that mmu was not responding 
 bool mmu_print_saved = false;
 
 // storing estimated time to end of print counted by slicer
@@ -352,17 +352,17 @@ const int sensitive_pins[] = SENSITIVE_PINS; // Sensitive pin list for M42
 //Inactivity shutdown variables
 static unsigned long previous_millis_cmd = 0;
 unsigned long max_inactive_time = 0;
-static unsigned long stepper_inactive_time = DEFAULT_STEPPER_DEACTIVE_TIME * 1000l;
-static unsigned long safetytimer_inactive_time = DEFAULT_SAFETYTIMER_TIME_MINS * 60 * 1000ul;
+static unsigned long stepper_inactive_time = DEFAULT_STEPPER_DEACTIVE_TIME*1000l;
+static unsigned long safetytimer_inactive_time = DEFAULT_SAFETYTIMER_TIME_MINS*60*1000ul;
 
-unsigned long starttime = 0;
-unsigned long stoptime = 0;
+unsigned long starttime=0;
+unsigned long stoptime=0;
 unsigned long _usb_timer = 0;
 
-bool Stopped = false;
+bool Stopped=false;
 
 #if NUM_SERVOS > 0
-Servo servos[NUM_SERVOS];
+  Servo servos[NUM_SERVOS];
 #endif
 
 bool target_direction;
@@ -412,129 +412,118 @@ uint16_t gcode_in_progress = 0;
 uint16_t mcode_in_progress = 0;
 
 void serial_echopair_P(const char *s_P, float v)
-{
-  serialprintPGM(s_P);
-  SERIAL_ECHO(v);
-}
+    { serialprintPGM(s_P); SERIAL_ECHO(v); }
 void serial_echopair_P(const char *s_P, double v)
-{
-  serialprintPGM(s_P);
-  SERIAL_ECHO(v);
-}
+    { serialprintPGM(s_P); SERIAL_ECHO(v); }
 void serial_echopair_P(const char *s_P, unsigned long v)
-{
-  serialprintPGM(s_P);
-  SERIAL_ECHO(v);
-}
+    { serialprintPGM(s_P); SERIAL_ECHO(v); }
 
 /*FORCE_INLINE*/ void serialprintPGM(const char *str)
 {
 #if 0
-  char ch = pgm_read_byte(str);
-  while (ch)
+  char ch=pgm_read_byte(str);
+  while(ch)
   {
     MYSERIAL.write(ch);
-    ch = pgm_read_byte(++str);
+    ch=pgm_read_byte(++str);
   }
 #else
-  // hmm, same size as the above version, the compiler did a good job optimizing the above
-  while ( uint8_t ch = pgm_read_byte(str) ) {
-    MYSERIAL.write((char)ch);
-    ++str;
-  }
+    // hmm, same size as the above version, the compiler did a good job optimizing the above
+    while( uint8_t ch = pgm_read_byte(str) ){
+      MYSERIAL.write((char)ch);
+      ++str;
+    }
 #endif
 }
 
 #ifdef SDSUPPORT
-#include "SdFatUtil.h"
-int freeMemory() {
-  return SdFatUtil::FreeRam();
-}
+  #include "SdFatUtil.h"
+  int freeMemory() { return SdFatUtil::FreeRam(); }
 #else
-extern "C" {
-  extern unsigned int __bss_end;
-  extern unsigned int __heap_start;
-  extern void *__brkval;
+  extern "C" {
+    extern unsigned int __bss_end;
+    extern unsigned int __heap_start;
+    extern void *__brkval;
 
-  int freeMemory() {
-    int free_memory;
+    int freeMemory() {
+      int free_memory;
 
-    if ((int)__brkval == 0)
-      free_memory = ((int)&free_memory) - ((int)&__bss_end);
-    else
-      free_memory = ((int)&free_memory) - ((int)__brkval);
+      if ((int)__brkval == 0)
+        free_memory = ((int)&free_memory) - ((int)&__bss_end);
+      else
+        free_memory = ((int)&free_memory) - ((int)__brkval);
 
-    return free_memory;
-  }
+      return free_memory;
+    }
 }
 #endif //!SDSUPPORT
 
 void setup_killpin()
 {
-#if defined(KILL_PIN) && KILL_PIN > -1
-  SET_INPUT(KILL_PIN);
-  WRITE(KILL_PIN, HIGH);
-#endif
+  #if defined(KILL_PIN) && KILL_PIN > -1
+    SET_INPUT(KILL_PIN);
+    WRITE(KILL_PIN,HIGH);
+  #endif
 }
 
 // Set home pin
 void setup_homepin(void)
 {
 #if defined(HOME_PIN) && HOME_PIN > -1
-  SET_INPUT(HOME_PIN);
-  WRITE(HOME_PIN, HIGH);
+   SET_INPUT(HOME_PIN);
+   WRITE(HOME_PIN,HIGH);
 #endif
 }
 
 void setup_photpin()
 {
-#if defined(PHOTOGRAPH_PIN) && PHOTOGRAPH_PIN > -1
-  SET_OUTPUT(PHOTOGRAPH_PIN);
-  WRITE(PHOTOGRAPH_PIN, LOW);
-#endif
+  #if defined(PHOTOGRAPH_PIN) && PHOTOGRAPH_PIN > -1
+    SET_OUTPUT(PHOTOGRAPH_PIN);
+    WRITE(PHOTOGRAPH_PIN, LOW);
+  #endif
 }
 
 void setup_powerhold()
 {
-#if defined(SUICIDE_PIN) && SUICIDE_PIN > -1
-  SET_OUTPUT(SUICIDE_PIN);
-  WRITE(SUICIDE_PIN, HIGH);
-#endif
-#if defined(PS_ON_PIN) && PS_ON_PIN > -1
-  SET_OUTPUT(PS_ON_PIN);
-#if defined(PS_DEFAULT_OFF)
-  WRITE(PS_ON_PIN, PS_ON_ASLEEP);
-#else
-  WRITE(PS_ON_PIN, PS_ON_AWAKE);
-#endif
-#endif
+  #if defined(SUICIDE_PIN) && SUICIDE_PIN > -1
+    SET_OUTPUT(SUICIDE_PIN);
+    WRITE(SUICIDE_PIN, HIGH);
+  #endif
+  #if defined(PS_ON_PIN) && PS_ON_PIN > -1
+    SET_OUTPUT(PS_ON_PIN);
+    #if defined(PS_DEFAULT_OFF)
+      WRITE(PS_ON_PIN, PS_ON_ASLEEP);
+    #else
+      WRITE(PS_ON_PIN, PS_ON_AWAKE);
+    #endif
+  #endif
 }
 
 void suicide()
 {
-#if defined(SUICIDE_PIN) && SUICIDE_PIN > -1
-  SET_OUTPUT(SUICIDE_PIN);
-  WRITE(SUICIDE_PIN, LOW);
-#endif
+  #if defined(SUICIDE_PIN) && SUICIDE_PIN > -1
+    SET_OUTPUT(SUICIDE_PIN);
+    WRITE(SUICIDE_PIN, LOW);
+  #endif
 }
 
 void servo_init()
 {
-#if (NUM_SERVOS >= 1) && defined(SERVO0_PIN) && (SERVO0_PIN > -1)
-  servos[0].attach(SERVO0_PIN);
-#endif
-#if (NUM_SERVOS >= 2) && defined(SERVO1_PIN) && (SERVO1_PIN > -1)
-  servos[1].attach(SERVO1_PIN);
-#endif
-#if (NUM_SERVOS >= 3) && defined(SERVO2_PIN) && (SERVO2_PIN > -1)
-  servos[2].attach(SERVO2_PIN);
-#endif
-#if (NUM_SERVOS >= 4) && defined(SERVO3_PIN) && (SERVO3_PIN > -1)
-  servos[3].attach(SERVO3_PIN);
-#endif
-#if (NUM_SERVOS >= 5)
-#error "TODO: enter initalisation code for more servos"
-#endif
+  #if (NUM_SERVOS >= 1) && defined(SERVO0_PIN) && (SERVO0_PIN > -1)
+    servos[0].attach(SERVO0_PIN);
+  #endif
+  #if (NUM_SERVOS >= 2) && defined(SERVO1_PIN) && (SERVO1_PIN > -1)
+    servos[1].attach(SERVO1_PIN);
+  #endif
+  #if (NUM_SERVOS >= 3) && defined(SERVO2_PIN) && (SERVO2_PIN > -1)
+    servos[2].attach(SERVO2_PIN);
+  #endif
+  #if (NUM_SERVOS >= 4) && defined(SERVO3_PIN) && (SERVO3_PIN > -1)
+    servos[3].attach(SERVO3_PIN);
+  #endif
+  #if (NUM_SERVOS >= 5)
+    #error "TODO: enter initalisation code for more servos"
+  #endif
 }
 
 
@@ -544,94 +533,94 @@ bool fans_check_enabled = true;
 
 void crashdet_stop_and_save_print()
 {
-  stop_and_save_print_to_ram(10, -default_retraction); //XY - no change, Z 10mm up, E -1mm retract
+    stop_and_save_print_to_ram(10, -default_retraction); //XY - no change, Z 10mm up, E -1mm retract
 }
 
 void crashdet_restore_print_and_continue()
 {
-  restore_print_from_ram_and_continue(default_retraction); //XYZ = orig, E +1mm unretract
-  //	babystep_apply();
+    restore_print_from_ram_and_continue(default_retraction); //XYZ = orig, E +1mm unretract
+//  babystep_apply();
 }
 
 
 void crashdet_stop_and_save_print2()
 {
-  cli();
-  planner_abort_hard(); //abort printing
-  cmdqueue_reset(); //empty cmdqueue
-  card.sdprinting = false;
-  card.closefile();
+    cli();
+    planner_abort_hard(); //abort printing
+    cmdqueue_reset(); //empty cmdqueue
+    card.sdprinting = false;
+    card.closefile();
   // Reset and re-enable the stepper timer just before the global interrupts are enabled.
   st_reset_timer();
-  sei();
+    sei();
 }
 
 void crashdet_detected(uint8_t mask)
 {
-  st_synchronize();
-  static uint8_t crashDet_counter = 0;
-  bool automatic_recovery_after_crash = true;
+    st_synchronize();
+    static uint8_t crashDet_counter = 0;
+    bool automatic_recovery_after_crash = true;
 
-  if (crashDet_counter++ == 0) {
-    crashDetTimer.start();
-  }
-  else if (crashDetTimer.expired(CRASHDET_TIMER * 1000ul)) {
-    crashDetTimer.stop();
-    crashDet_counter = 0;
-  }
-  else if (crashDet_counter == CRASHDET_COUNTER_MAX) {
-    automatic_recovery_after_crash = false;
-    crashDetTimer.stop();
-    crashDet_counter = 0;
-  }
-  else {
-    crashDetTimer.start();
-  }
+    if (crashDet_counter++ == 0) {
+        crashDetTimer.start();
+    }
+    else if (crashDetTimer.expired(CRASHDET_TIMER * 1000ul)){
+        crashDetTimer.stop();
+        crashDet_counter = 0;
+    }
+    else if(crashDet_counter == CRASHDET_COUNTER_MAX){
+        automatic_recovery_after_crash = false;
+        crashDetTimer.stop();
+        crashDet_counter = 0;
+    }
+    else {
+        crashDetTimer.start();
+    }
 
-  lcd_update_enable(true);
-  lcd_clear();
-  lcd_update(2);
-
-  if (mask & X_AXIS_MASK)
-  {
-    eeprom_update_byte((uint8_t*)EEPROM_CRASH_COUNT_X, eeprom_read_byte((uint8_t*)EEPROM_CRASH_COUNT_X) + 1);
-    eeprom_update_word((uint16_t*)EEPROM_CRASH_COUNT_X_TOT, eeprom_read_word((uint16_t*)EEPROM_CRASH_COUNT_X_TOT) + 1);
-  }
-  if (mask & Y_AXIS_MASK)
-  {
-    eeprom_update_byte((uint8_t*)EEPROM_CRASH_COUNT_Y, eeprom_read_byte((uint8_t*)EEPROM_CRASH_COUNT_Y) + 1);
-    eeprom_update_word((uint16_t*)EEPROM_CRASH_COUNT_Y_TOT, eeprom_read_word((uint16_t*)EEPROM_CRASH_COUNT_Y_TOT) + 1);
-  }
-
-
-
-  lcd_update_enable(true);
-  lcd_update(2);
-  lcd_setstatuspgm(_T(MSG_CRASH_DETECTED));
-  gcode_G28(true, true, false); //home X and Y
-  st_synchronize();
-
-  if (automatic_recovery_after_crash) {
-    enquecommand_P(PSTR("CRASH_RECOVER"));
-  } else {
-    setTargetHotend(0, active_extruder);
-    bool yesno = lcd_show_fullscreen_message_yes_no_and_wait_P(_i("Crash detected. Resume print?"), false);
     lcd_update_enable(true);
-    if (yesno)
+    lcd_clear();
+    lcd_update(2);
+
+    if (mask & X_AXIS_MASK)
     {
-      enquecommand_P(PSTR("CRASH_RECOVER"));
+        eeprom_update_byte((uint8_t*)EEPROM_CRASH_COUNT_X, eeprom_read_byte((uint8_t*)EEPROM_CRASH_COUNT_X) + 1);
+        eeprom_update_word((uint16_t*)EEPROM_CRASH_COUNT_X_TOT, eeprom_read_word((uint16_t*)EEPROM_CRASH_COUNT_X_TOT) + 1);
     }
-    else
+    if (mask & Y_AXIS_MASK)
     {
-      enquecommand_P(PSTR("CRASH_CANCEL"));
+        eeprom_update_byte((uint8_t*)EEPROM_CRASH_COUNT_Y, eeprom_read_byte((uint8_t*)EEPROM_CRASH_COUNT_Y) + 1);
+        eeprom_update_word((uint16_t*)EEPROM_CRASH_COUNT_Y_TOT, eeprom_read_word((uint16_t*)EEPROM_CRASH_COUNT_Y_TOT) + 1);
     }
-  }
+
+
+
+    lcd_update_enable(true);
+    lcd_update(2);
+    lcd_setstatuspgm(_T(MSG_CRASH_DETECTED));
+    gcode_G28(true, true, false); //home X and Y
+    st_synchronize();
+
+    if (automatic_recovery_after_crash) {
+        enquecommand_P(PSTR("CRASH_RECOVER"));
+    }else{
+        setTargetHotend(0, active_extruder);
+        bool yesno = lcd_show_fullscreen_message_yes_no_and_wait_P(_i("Crash detected. Resume print?"), false);
+        lcd_update_enable(true);
+        if (yesno)
+        {
+            enquecommand_P(PSTR("CRASH_RECOVER"));
+        }
+        else
+        {
+            enquecommand_P(PSTR("CRASH_CANCEL"));
+        }
+    }
 }
 
 void crashdet_recover()
 {
-  crashdet_restore_print_and_continue();
-  if (lcd_crash_detect_enabled()) tmc2130_sg_stop_on_crash = true;
+    crashdet_restore_print_and_continue();
+    if (lcd_crash_detect_enabled()) tmc2130_sg_stop_on_crash = true;
 }
 
 void crashdet_cancel()
@@ -650,27 +639,27 @@ void crashdet_cancel()
 
 void failstats_reset_print()
 {
-  eeprom_update_byte((uint8_t *)EEPROM_CRASH_COUNT_X, 0);
-  eeprom_update_byte((uint8_t *)EEPROM_CRASH_COUNT_Y, 0);
-  eeprom_update_byte((uint8_t *)EEPROM_FERROR_COUNT, 0);
-  eeprom_update_byte((uint8_t *)EEPROM_POWER_COUNT, 0);
-  eeprom_update_byte((uint8_t *)EEPROM_MMU_FAIL, 0);
-  eeprom_update_byte((uint8_t *)EEPROM_MMU_LOAD_FAIL, 0);
+    eeprom_update_byte((uint8_t *)EEPROM_CRASH_COUNT_X, 0);
+    eeprom_update_byte((uint8_t *)EEPROM_CRASH_COUNT_Y, 0);
+    eeprom_update_byte((uint8_t *)EEPROM_FERROR_COUNT, 0);
+    eeprom_update_byte((uint8_t *)EEPROM_POWER_COUNT, 0);
+    eeprom_update_byte((uint8_t *)EEPROM_MMU_FAIL, 0);
+    eeprom_update_byte((uint8_t *)EEPROM_MMU_LOAD_FAIL, 0);
 #if defined(FILAMENT_SENSOR) && defined(PAT9125)
-  fsensor_softfail = 0;
+    fsensor_softfail = 0;
 #endif
 }
 
 void softReset()
 {
-  cli();
-  wdt_enable(WDTO_15MS);
-  while (1);
+    cli();
+    wdt_enable(WDTO_15MS);
+    while(1);
 }
 
 
 #ifdef MESH_BED_LEVELING
-enum MeshLevelingState { MeshReport, MeshStart, MeshNext, MeshSet };
+   enum MeshLevelingState { MeshReport, MeshStart, MeshNext, MeshSet };
 #endif
 
 
@@ -5513,12 +5502,11 @@ case_G80:
 
         Currently has no effect.
       */
-    /*!
 
       // Prusa3D specific: Don't know what it is for, it is in V2Calibration.gcode
 
       case 88:
-        break;*/
+                  break;
 
 
 #endif  // ENABLE_MESH_BED_LEVELING
@@ -8403,6 +8391,7 @@ Sigma_Exit:
                           "M933 [XYZE]int - Set linearity correction factor for the given axis. Valid ranges: 30-200, and 0 to turn off."
                           "M350 [XYZE]int - Set microstep mode.  Valid modes: 1 (full step), 2, 4, 8, 16, 32, 64, 128\n"
                           "M361 [XYZE]1|0 - Toggle 256 microstep Interpolation. 1 = ON, 0 = OFF\n"
+                          "M375 First layer cal\n"
                           "M360 - Print detailed table of every single setting for every single axis.\n"));
             // MYSERIAL.println("M362 - Reset all TMC related settings to firmware defaults.");
 
@@ -8895,6 +8884,15 @@ Sigma_Exit:
           break;
 
 #endif
+
+
+        case 375:
+          {
+          lcd_first_layer_calibration_reset();
+          }
+          break;
+
+
         case 701: //! M701 - load filament
           {
             if (mmu_enabled && code_seen('E'))
